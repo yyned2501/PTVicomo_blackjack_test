@@ -6,18 +6,19 @@ from sqlalchemy import column, desc, func, select
 from app import redis_cli
 from pyrogram import filters, Client
 from pyrogram.types.messages_and_media import Message
-from app.libs.async_user import User
-from app.libs.decorators import auto_delete_message, s_delete_message
-from app.models import ASSession
-from app.models.nexusphp import BlackJackHistory, BotBinds
-from app.normal_reply import USER_BIND_NONE, NOT_ENOUGH_BONUS_HALF
-from config import GROUP_ID
 from pyrogram.types import (
     Message,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
     CallbackQuery,
 )
+
+from app.libs.decorators import auto_delete_message, s_delete_message
+from app.models import ASSession
+from app.models.nexusphp import BlackJackHistory, BotBinds, Users
+from app.normal_reply import USER_BIND_NONE, NOT_ENOUGH_BONUS_HALF
+from config import GROUP_ID
+
 
 TAX_RATE = 0.01
 MAX_BONUS = 10000
@@ -194,10 +195,7 @@ reply_markup = InlineKeyboardMarkup(
         [
             InlineKeyboardButton("拿牌", callback_data=f"add"),
             InlineKeyboardButton("不拿", callback_data=f"done"),
-        ],
-        [
-            InlineKeyboardButton("刷新", callback_data=f"refresh"),
-        ],
+        ]
     ]
 )
 blackjackrank_reply_markup = InlineKeyboardMarkup(
@@ -211,8 +209,9 @@ blackjackrank_reply_markup = InlineKeyboardMarkup(
 )
 
 
-@Client.on_message(filters.chat(GROUP_ID) & filters.command("blackjack"))
-@Client.on_message(filters.private & filters.command("blackjack"))
+@Client.on_message(
+    (filters.chat(GROUP_ID) | filters.private) & filters.command("blackjack")
+)
 async def blackjack(client: Client, message: Message):
     try:
         bonus = int(message.command[1])
@@ -227,40 +226,44 @@ async def blackjack(client: Client, message: Message):
         return
     async with ASSession() as session:
         async with session.begin():
-            async with User(message) as user:
-                if not user.botbind:
-                    s_delete_message(message, 60)
-                    s_delete_message(await message.reply(USER_BIND_NONE), 60)
-                    return
-                if user.user.seedbonus / 2 < bonus:
-                    s_delete_message(message, 60)
-                    s_delete_message(await message.reply(NOT_ENOUGH_BONUS_HALF), 60)
-                    return
-                deck = Deck(user.tg_id, user.tg_name, bonus)
-                user.user.addbonus(-bonus, "blackjack开局")
-    for _ in range(2):
-        deck.dealer_draw()
-        deck.player_draw()
-    if deck.player_hand_value() == 21 or deck.dealer_hand_value() == 21:
-        result = await end_game(deck)
-        s_delete_message(
-            await message.reply(
-                deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}"
-            ),
-            60,
-        )
-        await message.delete()
-        return
-    key = f"{message.chat.id}:{message.id}"
-    game_decks[key] = deck
+            user = await Users.get_user_from_tgmessage(message)
+            if not user:
+                s_delete_message(message, 60)
+                s_delete_message(await message.reply(USER_BIND_NONE), 60)
+                return
+            if user.seedbonus / 2 < bonus:
+                s_delete_message(message, 60)
+                s_delete_message(await message.reply(NOT_ENOUGH_BONUS_HALF), 60)
+                return
+            deck = Deck(
+                user.bot_bind.telegram_account_id,
+                user.bot_bind.telegram_account_username,
+                bonus,
+            )
+            user.addbonus(-bonus, "blackjack开局")
+            for _ in range(2):
+                deck.dealer_draw()
+                deck.player_draw()
+            if deck.player_hand_value() == 21 or deck.dealer_hand_value() == 21:
+                result = await end_game(deck)
+                s_delete_message(
+                    await message.reply(
+                        deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}"
+                    ),
+                    60,
+                )
+                await message.delete()
+                return
+            key = f"{message.chat.id}:{message.id}"
+            game_decks[key] = deck
 
-    game_message = await client.send_message(
-        message.chat.id,
-        deck.get_tg_message_reply(),
-        reply_markup=reply_markup,
-        reply_to_message_id=message.id,
-    )
-    deck.save_to_redis(game_message.chat.id, game_message.id)
+            game_message = await client.send_message(
+                message.chat.id,
+                deck.get_tg_message_reply(),
+                reply_markup=reply_markup,
+                reply_to_message_id=message.id,
+            )
+            deck.save_to_redis(game_message.chat.id, game_message.id)
 
 
 @Client.on_callback_query(filters.regex(r"add"))
@@ -275,42 +278,41 @@ async def handle_callback_query(client: Client, callback_query: CallbackQuery):
     if callback_query.from_user.id != deck.tg_id:
         await callback_query.answer("不能操作别人的游戏", show_alert=True)
         return
-    if (
-        redis_message := deck.get_tg_message_reply_text()
-    ) != callback_query.message.text:
-        logger.info(redis_message)
-        logger.info(callback_query.message.text)
-        logger.info(redis_message == callback_query.message.text)
-        if deck.player_hand_value() >= 21:
-            result = await end_game(deck, key)
+    async with ASSession() as session:
+        async with session.begin():
+            if (
+                redis_message := deck.get_tg_message_reply_text()
+            ) != callback_query.message.text:
+                if deck.player_hand_value() >= 21:
+                    result = await end_game(deck, key)
+                    await callback_query.message.edit_text(
+                        deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
+                    )
+                    s_delete_message(callback_query.message, 60)
+                    await callback_query.message.reply_to_message.delete()
+                    return
+                await callback_query.message.edit_text(
+                    redis_message,
+                    reply_markup=reply_markup,
+                )
+                return "数据不一致，为您刷新数据"
+            if deck.dealer_hand_value() < 17:
+                deck.dealer_draw()
+            deck.player_draw()
+            if deck.player_hand_value() >= 21:
+                result = await end_game(deck, key)
+                await callback_query.message.edit_text(
+                    deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
+                )
+                s_delete_message(callback_query.message, 60)
+                await callback_query.message.reply_to_message.delete()
+                return
             await callback_query.message.edit_text(
-                deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
+                deck.get_tg_message_reply(),
+                reply_markup=reply_markup,
             )
-            s_delete_message(callback_query.message, 60)
-            await callback_query.message.reply_to_message.delete()
+            deck.save_to_redis(chat_id, message_id)
             return
-        await callback_query.message.edit_text(
-            redis_message,
-            reply_markup=reply_markup,
-        )
-        return "数据不一致，为您刷新数据"
-    if deck.dealer_hand_value() < 17:
-        deck.dealer_draw()
-    deck.player_draw()
-    if deck.player_hand_value() >= 21:
-        result = await end_game(deck, key)
-        await callback_query.message.edit_text(
-            deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
-        )
-        s_delete_message(callback_query.message, 60)
-        await callback_query.message.reply_to_message.delete()
-        return
-    await callback_query.message.edit_text(
-        deck.get_tg_message_reply(),
-        reply_markup=reply_markup,
-    )
-    deck.save_to_redis(chat_id, message_id)
-    return
 
 
 @Client.on_callback_query(filters.regex(r"done"))
@@ -325,42 +327,14 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
     if callback_query.from_user.id != deck.tg_id:
         await callback_query.answer("不能操作别人的游戏", show_alert=True)
         return
-    result = await end_game(deck, key)
-    await callback_query.message.edit_text(
-        deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
-    )
-    s_delete_message(callback_query.message, 60)
-    await callback_query.message.reply_to_message.delete()
-    return
-
-
-@Client.on_callback_query(filters.regex(r"refresh"))
-async def handle_refresh_callback_query(client: Client, callback_query: CallbackQuery):
-    message_id = callback_query.message.id
-    chat_id = callback_query.message.chat.id
-    key = f"{chat_id}:{message_id}"
-    deck = get_deck_by_message_id(chat_id, message_id)
-    if not deck:
-        await callback_query.answer("无法找到游戏数据。", show_alert=True)
-        return
-    if callback_query.from_user.id != deck.tg_id:
-        await callback_query.answer("不能操作别人的游戏", show_alert=True)
-        return
-    if deck.player_hand_value() >= 21:
-        result = await end_game(deck, key)
-        await callback_query.message.edit_text(
-            deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
-        )
-        s_delete_message(callback_query.message, 60)
-        await callback_query.message.reply_to_message.delete()
-        return
-    redis_message = deck.get_tg_message_reply_text()
-    if redis_message != callback_query.message.text:
-        await callback_query.message.edit_text(
-            redis_message,
-            reply_markup=reply_markup,
-        )
-    await callback_query.answer("刷新成功")
+    async with ASSession() as session:
+        async with session.begin():
+            result = await end_game(deck, key)
+            await callback_query.message.edit_text(
+                deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
+            )
+            s_delete_message(callback_query.message, 60)
+            await callback_query.message.reply_to_message.delete()
 
 
 result_map = {1: "你赢了！", 0: "平局！", -1: "你输了！"}
@@ -368,39 +342,27 @@ result_map = {1: "你赢了！", 0: "平局！", -1: "你输了！"}
 
 async def end_game(deck: Deck, key: str = None):
     result = deck.calculate_result()
-
-    async with ASSession() as session:
-        logger.info(f"{key},{session}")
-        async with session.begin():
-            botbind = (
-                (
-                    await session.execute(
-                        select(BotBinds).filter(
-                            BotBinds.telegram_account_id == deck.tg_id
-                        )
-                    )
-                )
-                .scalars()
-                .one_or_none()
+    session = ASSession()
+    logger.info(f"{key},{session}")
+    async with session.begin_nested():
+        user = await Users.get_user_from_tg_id(deck.tg_id)
+        win_bonus = 0
+        if result == 1:
+            win_bonus = deck.bonus * 2
+        elif result == 0:
+            win_bonus = deck.bonus
+        tax = max(int((win_bonus - deck.bonus) * TAX_RATE), 0)
+        session.add(
+            BlackJackHistory(
+                user_id=user.id,
+                result=f"{deck.dealer_hand_value()}:{deck.player_hand_value()}",
+                bonus=deck.bonus,
+                win_bonus=win_bonus,
+                tax=tax,
             )
-            user = botbind.user
-            win_bonus = 0
-            if result == 1:
-                win_bonus = deck.bonus * 2
-            elif result == 0:
-                win_bonus = deck.bonus
-            tax = max(int((win_bonus - deck.bonus) * TAX_RATE), 0)
-            session.add(
-                BlackJackHistory(
-                    user_id=user.id,
-                    result=f"{deck.dealer_hand_value()}:{deck.player_hand_value()}",
-                    bonus=deck.bonus,
-                    win_bonus=win_bonus,
-                    tax=tax,
-                )
-            )
-            if win_bonus > 0:
-                user.addbonus(win_bonus - tax, "blackjack结局")
+        )
+        if win_bonus > 0:
+            user.addbonus(win_bonus - tax, "blackjack结局")
     if key:
         del game_decks[key]
         redis_cli.delete(f"blackjack:{key}")
@@ -476,7 +438,7 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
     )
 
 
-async def get_blackjack_pool(user: User = None):
+async def get_blackjack_pool(user: Users = None):
     session = ASSession()
     async with session.begin_nested():
         if user:
@@ -486,7 +448,7 @@ async def get_blackjack_pool(user: User = None):
                     func.sum(BlackJackHistory.win_bonus),
                     func.sum(BlackJackHistory.tax),
                 )
-                .filter(BlackJackHistory.user_id == user.user.id)
+                .filter(BlackJackHistory.user_id == user.id)
                 .group_by(BlackJackHistory.user_id)
                 .limit(1)
             )
@@ -515,30 +477,33 @@ async def get_blackjack_pool(user: User = None):
     filters.chat(GROUP_ID) & filters.reply & filters.command("blackjackinfo")
 )
 @auto_delete_message(60)
-async def lotteryinfo(client: Client, message: Message):
+async def blackjackinfo_reply(client: Client, message: Message):
     async with ASSession() as session:
         async with session.begin():
-            async with User(message.reply_to_message) as user:
-                bet, win, tax = await get_blackjack_pool(user)
-                return await message.reply(
-                    f"`累计开局 : {bet:,}`\n`累计盈利 : {win:,}`\n`累计缴税 : { tax:,}`\n`累计净赚 : {win-bet-tax:,}`"
-                )
+            user = await Users.get_user_from_tgmessage(message.reply_to_message)
+            bet, win, tax = await get_blackjack_pool(user)
+            return await message.reply(
+                f"`累计开局 : {bet:,}`\n`累计盈利 : {win:,}`\n`累计缴税 : { tax:,}`\n`累计净赚 : {win-bet-tax:,}`"
+            )
 
 
-@Client.on_message(filters.chat(GROUP_ID) & filters.command("blackjackinfo"))
-@Client.on_message(filters.private & filters.command("blackjackinfo"))
+@Client.on_message(
+    (filters.chat(GROUP_ID) | filters.private) & filters.command("blackjackinfo")
+)
 @auto_delete_message(60)
-async def lotteryinfo(client: Client, message: Message):
+async def blackjackinfo(client: Client, message: Message):
     async with ASSession() as session:
         async with session.begin():
-            async with User(message) as user:
-                bet, win, tax = await get_blackjack_pool(user)
-                return await message.reply(
-                    f"`累计开局 : {bet:,}`\n`累计盈利 : {win:,}`\n`累计缴税 : { tax:,}`\n`累计净赚 : {win-bet-tax:,}`"
-                )
+            user = await Users.get_user_from_tgmessage(message)
+            bet, win, tax = await get_blackjack_pool(user)
+            return await message.reply(
+                f"`累计开局 : {bet:,}`\n`累计盈利 : {win:,}`\n`累计缴税 : { tax:,}`\n`累计净赚 : {win-bet-tax:,}`"
+            )
 
 
-@Client.on_message(filters.chat(GROUP_ID) & filters.command("blackjackinfoall"))
+@Client.on_message(
+    (filters.chat(GROUP_ID) | filters.private) & filters.command("blackjackinfoall")
+)
 @auto_delete_message(60)
 async def blackjackinfoall(client: Client, message: Message):
     bet, win, tax = await get_blackjack_pool()
@@ -547,16 +512,17 @@ async def blackjackinfoall(client: Client, message: Message):
     )
 
 
-@Client.on_message(filters.command("setblackjackmax"))
+@Client.on_message(
+    (filters.chat(GROUP_ID) | filters.private) & filters.command("setblackjackmax")
+)
 @auto_delete_message()
-async def ban(client: Client, message: Message):
-    bonus = int(message.command[1])
+async def setblackjackmax(client: Client, message: Message):
     global MAX_BONUS
-
+    bonus = int(message.command[1])
     async with ASSession() as session:
         async with session.begin():
-            async with User(message) as user:
-                if not user.botbind or user.user._class < 14:
-                    return await message.reply("您没有此权限")
-                MAX_BONUS = bonus
-                return await message.reply(f"开局上限已修改为{MAX_BONUS}")
+            user = await Users.get_user_from_tgmessage(message)
+            if not user or user._class < 14:
+                return await message.reply("您没有此权限")
+            MAX_BONUS = bonus
+            return await message.reply(f"开局上限已修改为{MAX_BONUS}")

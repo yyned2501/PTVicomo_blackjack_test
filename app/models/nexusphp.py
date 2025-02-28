@@ -1,4 +1,7 @@
 import logging
+import random
+import datetime
+
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -12,11 +15,11 @@ from sqlalchemy import (
     DateTime,
     Enum,
     func,
+    select,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-import random
-import datetime
+from pyrogram.types.messages_and_media import Message
 
 from app.models import ASSession
 from app.models.base import Base
@@ -172,6 +175,39 @@ class Users(Base):
         role_ids = [role.role_id for role in self.user_roles]
         if n in role_ids:
             return True
+
+    @classmethod
+    async def get_user_from_tg_id(cls, tg_id: int):
+        session = ASSession()
+        async with session.begin_nested():
+            botbind = (
+                (
+                    await session.execute(
+                        select(BotBinds).filter(BotBinds.telegram_account_id == tg_id)
+                    )
+                )
+                .scalars()
+                .one_or_none()
+            )
+            if botbind:
+                return botbind.user
+
+    @classmethod
+    async def get_user_from_tgmessage(cls, message: Message):
+        tg_name = " ".join(
+            [
+                name
+                for name in [
+                    message.from_user.first_name,
+                    message.from_user.last_name,
+                ]
+                if name
+            ]
+        )
+        user = await cls.get_user_from_tg_id(message.from_user.id)
+        if user:
+            user.bot_bind.telegram_account_username = tg_name
+            return user
 
 
 class BonusLogs(Base):
