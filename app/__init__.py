@@ -1,5 +1,6 @@
 import asyncio
 import os
+import traceback
 
 import redis
 from pyrogram import Client as _Client
@@ -18,13 +19,18 @@ class Client(_Client):
         super().__init__(*arg, **karg)
         self.bucket = AsyncTokenBucket(capacity=10, fill_rate=1)
 
-    async def invoke(self, *arg, **kargs):
+    async def invoke(self, *arg, err=0, **kargs):
         await self.bucket.consume()
         try:
             return await super().invoke(*arg, **kargs)
-        except TimeoutError:
+        except TimeoutError as e:
+            logger.error(e, traceback.format_exc())
             asyncio.sleep(1)
-            return await self.invoke(*arg, **kargs)
+            return await self.invoke(*arg, err=err + 1, **kargs)
+        except Exception as e:
+            logger.error(e, traceback.format_exc())
+            asyncio.sleep(1)
+            return await self.invoke(*arg, err=err + 1, **kargs)
 
 
 os.environ["TZ"] = "Asia/Shanghai"
