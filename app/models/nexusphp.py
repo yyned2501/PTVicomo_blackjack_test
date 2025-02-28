@@ -205,10 +205,10 @@ class Users(Base):
             ]
         )
         user = await cls.get_user_from_tg_id(message.from_user.id)
-        if user:
-            user.bot_bind.telegram_account_username = tg_name
-            await session.flush()
-            return user
+        # if user:
+        #     user.bot_bind.telegram_account_username = tg_name
+        #     await session.flush()
+        return user
 
 
 class BonusLogs(Base):
