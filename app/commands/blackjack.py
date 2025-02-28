@@ -225,6 +225,7 @@ async def blackjack(client: Client, message: Message):
         s_delete_message(reply_message, 60)
         return
     async with ASSession() as session:
+        logger.info(f"blackjack:{session}")
         async with session.begin():
             user = await Users.get_user_from_tgmessage(message)
             if not user:
@@ -328,6 +329,7 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
         await callback_query.answer("不能操作别人的游戏", show_alert=True)
         return
     async with ASSession() as session:
+        logger.info(f"done:{key}:{session}")
         async with session.begin():
             result = await end_game(deck, key)
             await callback_query.message.edit_text(
@@ -343,7 +345,7 @@ result_map = {1: "你赢了！", 0: "平局！", -1: "你输了！"}
 async def end_game(deck: Deck, key: str = None):
     result = deck.calculate_result()
     session = ASSession()
-    logger.info(f"{key},{session}")
+    logger.info(f"end_game:{key},{session}")
     async with session.begin_nested():
         user = await Users.get_user_from_tg_id(deck.tg_id)
         win_bonus = 0
