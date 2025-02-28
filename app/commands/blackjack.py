@@ -335,7 +335,7 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
 
 
 @Client.on_callback_query(filters.regex(r"refresh"))
-async def handle_done_callback_query(client: Client, callback_query: CallbackQuery):
+async def handle_refresh_callback_query(client: Client, callback_query: CallbackQuery):
     message_id = callback_query.message.id
     chat_id = callback_query.message.chat.id
     key = f"{chat_id}:{message_id}"
