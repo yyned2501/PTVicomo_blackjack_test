@@ -194,6 +194,7 @@ class Users(Base):
 
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
+        session = ASSession()
         tg_name = " ".join(
             [
                 name
@@ -204,10 +205,11 @@ class Users(Base):
                 if name
             ]
         )
-        user = await cls.get_user_from_tg_id(message.from_user.id)
-        if user:
-            user.bot_bind.telegram_account_username = tg_name
-            return user
+        async with session.begin_nested():
+            user = await cls.get_user_from_tg_id(message.from_user.id)
+            if user:
+                user.bot_bind.telegram_account_username = tg_name
+                return user
 
 
 class BonusLogs(Base):
