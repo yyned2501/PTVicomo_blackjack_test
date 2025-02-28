@@ -26,7 +26,7 @@ from app.models.base import Base
 from app.libs.func import format_byte_size
 
 
-logger = logging.getLogger("mian")
+logger = logging.getLogger("main")
 
 CLASS_NAME = [
     "peasant(墨刑者)",
