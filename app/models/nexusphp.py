@@ -1,0 +1,354 @@
+import logging
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    String,
+    Integer,
+    Float,
+    BigInteger,
+    Text,
+    TIMESTAMP,
+    SmallInteger,
+    DateTime,
+    Enum,
+    func,
+    text,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+import random
+import datetime
+
+from app.models import ASSession
+from app.models.base import Base
+from app.libs.func import format_byte_size
+
+
+logger = logging.getLogger("bonus")
+
+CLASS_NAME = [
+    "peasant(墨刑者)",
+    "user(岛民)",
+    "Power User(伍长)",
+    "Elite User(什长)",
+    "Crazy User(里正)",
+    "Insane User(亭长)",
+    "Veteran User(乡秩)",
+    "Extreme User(县道)",
+    "Ultimate User(郡府)",
+    "Nexus Master(公卿)",
+    "贵宾",
+    "养老族",
+    "发布员",
+    "总版主",
+    "管理员",
+    "维护开发员",
+    "岛主",
+]
+
+
+class BotBinds(Base):
+    __tablename__ = "plugin_telegram_bot_binds"
+    uid: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    telegram_account_id: Mapped[int] = mapped_column(BigInteger)
+    telegram_account_username: Mapped[str] = mapped_column(String(255))
+    user: Mapped["Users"] = relationship(back_populates="bot_bind", lazy="subquery")
+
+
+class Users(Base):
+    __tablename__ = "users"
+    username: Mapped[str] = mapped_column(String(40))
+    seedbonus: Mapped[float] = mapped_column(Float)
+    email: Mapped[str] = mapped_column(String(80))
+    passkey: Mapped[str] = mapped_column(String(32))
+    uploaded: Mapped[int] = mapped_column(BigInteger)
+    downloaded: Mapped[int] = mapped_column(BigInteger)
+    vip_added: Mapped[str] = mapped_column(Enum("yes", "no"))
+    vip_until: Mapped[DateTime] = mapped_column(TIMESTAMP)
+    invites: Mapped[int] = mapped_column(SmallInteger)
+    _class: Mapped[int] = mapped_column("class", SmallInteger)
+    two_step_secret: Mapped[str] = mapped_column(String(255))
+    attendance_card: Mapped[int] = mapped_column(Integer)
+    bonuscomment: Mapped[str] = mapped_column(Text)
+    bot_bind: Mapped["BotBinds"] = relationship(back_populates="user", lazy="subquery")
+    user_roles: Mapped[list["UserRoles"]] = relationship(
+        back_populates="user", lazy="subquery"
+    )
+    user_metas: Mapped[list["UserMetas"]] = relationship(
+        back_populates="user", lazy="subquery"
+    )
+    roles_names: Mapped[list["Roles"]] = relationship(
+        "Roles",
+        secondary="user_roles",
+        viewonly=True,
+        back_populates="users",
+        lazy="subquery",
+    )
+    bonus_logs: Mapped[list["BonusLogs"]] = relationship(
+        "BonusLogs",
+        back_populates="user",
+        lazy="subquery",
+    )
+
+    @property
+    def uploaded_str(self):
+        return format_byte_size(self.uploaded)
+
+    @property
+    def downloaded_str(self):
+        return format_byte_size(self.downloaded)
+
+    @property
+    def rate(self):
+        if self.downloaded == 0:
+            return "inf."
+        return round(self.uploaded / self.downloaded, 2)
+
+    @property
+    def class_name(self):
+        return CLASS_NAME[self._class]
+
+    @property
+    def role_names(self):
+        return " ".join([role.name for role in self.roles_names])
+
+    def addbonus(self, bonus: float, comment=""):
+        old = self.seedbonus
+        bonus = round(bonus, 1)
+        new = round(self.seedbonus + bonus, 1)
+        write_comment = f"[TG] {comment} {bonus} 象草"
+        self.seedbonus = text(f"{bonus}+seedbonus")
+        self.bonuscomment = func.concat(
+            f'{datetime.datetime.now().strftime("%Y-%m-%d")} - {write_comment}\n',
+            text("SUBSTRING_INDEX(bonuscomment, '\n', 99)"),
+        )
+        self.bonus_logs.append(
+            BonusLogs(
+                business_type=123,
+                uid=self.id,
+                old_total_value=old,
+                value=abs(bonus),
+                new_total_value=new,
+                comment=write_comment,
+                created_at=datetime.datetime.now(),
+                updated_at=datetime.datetime.now(),
+            )
+        )
+        logger.info(f"{self.id}|{old}|{bonus}|{new}|{comment}")
+
+    def setvip(self, days=7):
+        self._class = 10
+        self.vip_added = "yes"
+        self.vip_until = datetime.datetime.now() + datetime.timedelta(days=days)
+
+    def add_rbid(self, days=7):
+        if self.user_metas:
+            for user_meta in self.user_metas:
+                if user_meta.meta_key == "PERSONALIZED_USERNAME":
+                    if not user_meta.deadline:
+                        return False, days
+                    if user_meta.deadline < datetime.datetime.now():
+                        user_meta.deadline = (
+                            datetime.datetime.now() + datetime.timedelta(days=days)
+                        )
+                        return False, 0
+                    elif (
+                        user_meta.deadline
+                        > datetime.datetime.now() + datetime.timedelta(days=30)
+                    ):
+                        return False, days
+                    else:
+                        user_meta.deadline += datetime.timedelta(days=days)
+                        return False, 0
+        return (
+            UserMetas(
+                uid=self.id,
+                meta_key="PERSONALIZED_USERNAME",
+                deadline=datetime.datetime.now() + datetime.timedelta(days=days),
+            ),
+            0,
+        )
+
+    def is_role(self, n):
+        role_ids = [role.role_id for role in self.user_roles]
+        if n in role_ids:
+            return True
+
+
+class BonusLogs(Base):
+    __tablename__ = "bonus_logs"
+    business_type: Mapped[int] = mapped_column(Integer)
+    uid: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    old_total_value: Mapped[float] = mapped_column(Float)
+    value: Mapped[float] = mapped_column(Float)
+    new_total_value: Mapped[float] = mapped_column(Float)
+    comment: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[DateTime] = mapped_column(TIMESTAMP)
+    updated_at: Mapped[DateTime] = mapped_column(TIMESTAMP)
+    user: Mapped["Users"] = relationship(back_populates="bonus_logs")
+
+
+class UserMetas(Base):
+    __tablename__ = "user_metas"
+    uid: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    meta_key: Mapped[str] = mapped_column(String(255))
+    deadline: Mapped[DateTime] = mapped_column(TIMESTAMP)
+    user: Mapped["Users"] = relationship(back_populates="user_metas")
+
+
+class UserRoles(Base):
+    __tablename__ = "user_roles"
+    uid: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"))
+    user: Mapped["Users"] = relationship(back_populates="user_roles")
+    roles: Mapped["Roles"] = relationship(back_populates="user_roles")
+
+
+class Roles(Base):
+    __tablename__ = "roles"
+    name: Mapped[str] = mapped_column(String(255))
+    user_roles: Mapped["UserRoles"] = relationship(back_populates="roles")
+    users: Mapped[list["Users"]] = relationship(
+        "Users", secondary="user_roles", viewonly=True, back_populates="roles_names"
+    )
+
+
+class Settings(Base):
+    __tablename__ = "settings"
+    name: Mapped[str] = mapped_column(String(255))
+    value: Mapped[str] = mapped_column(Text)
+
+
+class Custom_turnip_calendar(Base):
+    __tablename__ = "custom_turnip_calendar"
+    date: Mapped[DateTime] = mapped_column(TIMESTAMP)
+    price: Mapped[float] = mapped_column(Float)
+    name: Mapped[str] = mapped_column(String(255))
+
+
+class Redpocket(Base):
+    __tablename__ = "custom_redpockets"
+    from_uid: Mapped[int] = mapped_column(BigInteger)
+    bonus: Mapped[int] = mapped_column(Integer)
+    count: Mapped[int] = mapped_column(Integer)
+    password: Mapped[str] = mapped_column(String(255))
+    _pocket_type: Mapped[int] = mapped_column("pocket_type", Integer)
+    claimed: Mapped[list["RedpocketClaimed"]] = relationship(
+        "RedpocketClaimed", lazy="subquery"
+    )
+    tpye_name = ["拼手气红包", "锦鲤红包"]
+
+    def get(self):
+        bonus = None
+        if self._pocket_type == 0:
+            avg_bonus = self.bonus / self.count
+            if self.count == 1:
+                bonus = self.bonus
+            else:
+                bonus = random.randint(int(avg_bonus * 0.5), int(avg_bonus * 1.5))
+            self.bonus = text(f"bonus-{bonus}")
+        self.count = text(f"count-1")
+        return bonus
+
+    def draw(self):
+        n = len(self.claimed)
+        lucky_n = random.randint(0, n - 1)
+        lucky_user = self.claimed[lucky_n].tg_id
+        return self.bonus, lucky_user
+
+    @property
+    def pocket_type(self):
+        return self.tpye_name[self._pocket_type]
+
+
+class RedpocketClaimed(Base):
+    __tablename__ = "custom_redpockets_claimed"
+    redpocket_id: Mapped[int] = mapped_column(ForeignKey("custom_redpockets.id"))
+    tg_id: Mapped[int] = mapped_column(BigInteger)
+    redpocket = relationship(
+        "Redpocket",
+        back_populates="claimed",
+    )
+
+
+class Torrents(Base):
+    __tablename__ = "torrents"
+    name: Mapped[str] = mapped_column(String(255))
+
+
+class TorrentsTag(Base):
+    __tablename__ = "torrent_tags"
+    torrent_id: Mapped[int] = mapped_column(Integer)
+    tag_id: Mapped[int] = mapped_column(Integer)
+
+
+class News(Base):
+    __tablename__ = "news"
+    title: Mapped[str] = mapped_column(String(255))
+    body: Mapped[str] = mapped_column(Text)
+    added: Mapped[DateTime] = mapped_column(DateTime)
+
+
+class TgMessages(Base):
+    __tablename__ = "custom_tg_messages"
+    tg_id: Mapped[int] = mapped_column(BigInteger)
+    tg_name: Mapped[str] = mapped_column(String(255))
+    day_count: Mapped[int] = mapped_column(Integer, default=0)
+    month_count: Mapped[int] = mapped_column(Integer, default=0)
+    total_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    def send_message(self):
+        self.day_count += 1
+        self.month_count += 1
+        self.total_count += 1
+
+    def clean_day(self):
+        self.day_count = 0
+
+    def clean_month(self):
+        self.month_count = 0
+
+
+class LuckyDrawPrizes(Base):
+    __tablename__ = "lucky_draw_prizes"
+    type: Mapped[int] = mapped_column(Integer)
+    amount: Mapped[int] = mapped_column(Integer)
+    probability: Mapped[int] = mapped_column(Integer)
+    up_probability = 0
+    n = 0
+
+
+class LuckyDrawPrizesNum(Base):
+    __tablename__ = "custom_lucky_draw_prizes_num"
+    name: Mapped[str] = mapped_column(String(300))
+    current_num: Mapped[int] = mapped_column(Integer)
+    n = 0
+
+
+class LotteryHistory(Base):
+    __tablename__ = "custom_lottery_history"
+    messageid: Mapped[int] = mapped_column(Integer)
+    number: Mapped[str] = mapped_column(String(3), nullable=True)
+    create_time: Mapped[datetime.datetime] = mapped_column(DateTime, default=func.now())
+    update_time: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=func.now(), onupdate=func.now()
+    )
+
+
+class LotteryBetHistory(Base):
+    __tablename__ = "custom_lottery_bet_history"
+    history_id: Mapped[int] = mapped_column(BigInteger)
+    user_id: Mapped[int] = mapped_column(BigInteger)
+    number: Mapped[str] = mapped_column(String(3))
+    bonus: Mapped[int] = mapped_column(Integer)
+    win_bonus: Mapped[int] = mapped_column(Integer)
+    tax: Mapped[int] = mapped_column(Integer, nullable=True)
+
+
+class BlackJackHistory(Base):
+    __tablename__ = "custom_blackjack_history"
+    user_id: Mapped[int] = mapped_column(BigInteger)
+    result: Mapped[str] = mapped_column(String(5))
+    bonus: Mapped[int] = mapped_column(Integer)
+    win_bonus: Mapped[int] = mapped_column(Integer)
+    tax: Mapped[int] = mapped_column(Integer, nullable=True)
+    create_time: Mapped[datetime.datetime] = mapped_column(DateTime, default=func.now())

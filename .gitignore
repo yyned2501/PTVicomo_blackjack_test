@@ -1,0 +1,7 @@
+.venv/
+.DS*
+test/
+__pycache__
+
+config.py
+test*

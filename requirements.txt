@@ -1,0 +1,15 @@
+﻿# pyrogram
+kurigram
+apscheduler
+# cryptography
+
+# tgcrypto
+# uvloop
+
+sqlalchemy
+pymysql
+aiomysql
+
+redis
+pyyaml
+
