@@ -1,10 +1,10 @@
 ﻿# pyrogram
 kurigram
 apscheduler
-# cryptography
+cryptography
 
-# tgcrypto
-# uvloop
+tgcrypto
+uvloop
 
 sqlalchemy
 pymysql
