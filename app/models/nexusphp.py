@@ -179,17 +179,19 @@ class Users(Base):
     @classmethod
     async def get_user_from_tg_id(cls, tg_id: int):
         session = ASSession()
-        botbind = (
+        self = (
             (
                 await session.execute(
-                    select(BotBinds).filter(BotBinds.telegram_account_id == tg_id)
+                    select(cls)
+                    .join(BotBinds, cls.id == BotBinds.uid)
+                    .filter(BotBinds.telegram_account_id == tg_id)
                 )
             )
             .scalars()
             .one_or_none()
         )
-        if botbind:
-            return botbind.user
+        if self:
+            return self
 
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
@@ -205,10 +207,10 @@ class Users(Base):
             ]
         )
         user = await cls.get_user_from_tg_id(message.from_user.id)
-        # if user:
-        #     user.bot_bind.telegram_account_username = tg_name
-        #     await session.flush()
-        return user
+        if user:
+            user.bot_bind.telegram_account_username = tg_name
+            await session.flush()
+            return user
 
 
 class BonusLogs(Base):
