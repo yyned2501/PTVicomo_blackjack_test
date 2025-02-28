@@ -3,7 +3,7 @@ import os
 import traceback
 
 import redis
-from pyrogram import Client as _Client
+from pyrogram import Client
 from pyrogram import idle
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -14,23 +14,23 @@ from app.libs.async_token_bucket import AsyncTokenBucket
 from config import API_ID, API_HASH, BOT_TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
 
 
-class Client(_Client):
-    def __init__(self, *arg, **karg):
-        super().__init__(*arg, **karg)
-        self.bucket = AsyncTokenBucket(capacity=10, fill_rate=1)
+# class Client(_Client):
+#     def __init__(self, *arg, **karg):
+#         super().__init__(*arg, **karg)
+#         self.bucket = AsyncTokenBucket(capacity=10, fill_rate=1)
 
-    async def invoke(self, *arg, err=0, **kargs):
-        await self.bucket.consume()
-        try:
-            return await super().invoke(*arg, **kargs)
-        except TimeoutError as e:
-            logger.error(e, traceback.format_exc())
-            asyncio.sleep(1)
-            return await self.invoke(*arg, err=err + 1, **kargs)
-        except Exception as e:
-            logger.error(e, traceback.format_exc())
-            asyncio.sleep(1)
-            return await self.invoke(*arg, err=err + 1, **kargs)
+#     async def invoke(self, *arg, err=0, **kargs):
+#         await self.bucket.consume()
+#         try:
+#             return await super().invoke(*arg, **kargs)
+#         except TimeoutError as e:
+#             logger.error(e, traceback.format_exc())
+#             asyncio.sleep(1)
+#             return await self.invoke(*arg, err=err + 1, **kargs)
+#         except Exception as e:
+#             logger.error(e, traceback.format_exc())
+#             asyncio.sleep(1)
+#             return await self.invoke(*arg, err=err + 1, **kargs)
 
 
 os.environ["TZ"] = "Asia/Shanghai"
