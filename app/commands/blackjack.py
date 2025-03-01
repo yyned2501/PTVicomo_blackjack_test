@@ -1,7 +1,7 @@
 import json
 import random
 import logging
-from sqlalchemy import column, desc, func, select
+from sqlalchemy import column, desc, func, select, text
 
 from app import redis_cli
 from pyrogram import filters, Client
@@ -427,7 +427,9 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
         date_filter = None
         rank_name = "历史榜单"
     elif query_type == "yesterday":
-        date_filter = func.date(func.now()) - 1
+        date_filter = func.date(
+            func.date_sub(func.current_date(), text("INTERVAL 1 DAY"))
+        )
         rank_name = "昨日榜单"
     elif query_type == "today":
         date_filter = func.date(func.now())
