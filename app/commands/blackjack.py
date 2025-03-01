@@ -260,11 +260,9 @@ async def blackjack(client: Client, message: Message):
                 return
             key = f"{message.chat.id}:{message.id}"
 
-            game_message = await client.send_message(
-                message.chat.id,
+            game_message = await message.reply(
                 deck.get_tg_message_reply(),
                 reply_markup=reply_markup,
-                reply_to_message_id=message.id,
             )
             logger.info(f"回复消息")
             key = f"{message.chat.id}:{game_message.id}"
