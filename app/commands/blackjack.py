@@ -442,10 +442,12 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
         rank_name = "今日榜单"
 
     rank_message = await generate_rank_message(date_filter)
-    return await callback_query.message.edit_text(
-        f"`21点{rank_name}:`\n{rank_message}",
-        reply_markup=blackjackrank_reply_markup,
-    )
+    if blackjackrank_reply_markup != callback_query.message.content:
+        await callback_query.message.edit_text(
+            f"`21点{rank_name}:`\n{rank_message}",
+            reply_markup=blackjackrank_reply_markup,
+        )
+        return "刷新成功"
 
 
 async def get_blackjack_pool(user: Users = None):
