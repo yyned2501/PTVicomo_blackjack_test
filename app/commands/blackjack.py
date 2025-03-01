@@ -270,7 +270,7 @@ async def blackjack(client: Client, message: Message):
             )
             logger.info(f"{game_message.text}")
             while game_message.empty or game_message.id == message.id:
-                asyncio.sleep(1)
+                await asyncio.sleep(1)
                 logger.info(f"发送消息失败，尝试重发")
                 game_message = await client.send_message(
                     message.chat.id,
