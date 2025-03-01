@@ -319,7 +319,7 @@ async def handle_callback_query(client: Client, callback_query: CallbackQuery):
                 reply_markup=reply_markup,
             )
             deck.save_to_redis(chat_id, message_id)
-    return True
+    await callback_query.answer(f"刷新成功")
 
 
 @Client.on_callback_query(filters.regex(r"done"))
@@ -343,7 +343,7 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
             )
             s_delete_message(callback_query.message, 60)
             await callback_query.message.reply_to_message.delete()
-    return True
+    await callback_query.answer(f"刷新成功")
 
 
 result_map = {1: "你赢了！", 0: "平局！", -1: "你输了！"}
@@ -444,12 +444,13 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
         rank_name = "今日榜单"
 
     rank_message = await generate_rank_message(date_filter)
-    if blackjackrank_reply_markup != callback_query.message.content:
+    ret_message = f"`21点{rank_name}:`\n{rank_message}"
+    if ret_message != callback_query.message.content:
         await callback_query.message.edit_text(
-            f"`21点{rank_name}:`\n{rank_message}",
+            ret_message,
             reply_markup=blackjackrank_reply_markup,
         )
-        return "刷新成功"
+    await callback_query.answer(f"刷新成功")
 
 
 async def get_blackjack_pool(user: Users = None):
