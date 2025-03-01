@@ -26,6 +26,10 @@ class TrackedAsyncSession(AsyncSession):
         await super().close()
         active_sessions.discard(self)
 
+    def begin(self):
+        if not self.in_transaction():
+            return super().begin()
+
 
 async_connection_string = (
     f"mysql+asyncmy://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}"

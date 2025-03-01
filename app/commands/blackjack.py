@@ -227,63 +227,61 @@ async def blackjack(client: Client, message: Message):
         return
     async with ASSession() as session:
         await check_open_sessions()
-        if not session.in_transaction():
-            async with session.begin():
-                user = await Users.get_user_from_tgmessage(message)
-                if not user:
-                    s_delete_message(message, 60)
-                    s_delete_message(await message.reply(USER_BIND_NONE), 60)
-                    return
-                if user.seedbonus / 2 < bonus:
-                    s_delete_message(message, 60)
-                    s_delete_message(await message.reply(NOT_ENOUGH_BONUS_HALF), 60)
-                    return
-                deck = Deck(
-                    user.bot_bind.telegram_account_id,
-                    user.bot_bind.telegram_account_username,
-                    bonus,
+        async with session.begin():
+            user = await Users.get_user_from_tgmessage(message)
+            if not user:
+                s_delete_message(message, 60)
+                s_delete_message(await message.reply(USER_BIND_NONE), 60)
+                return
+            if user.seedbonus / 2 < bonus:
+                s_delete_message(message, 60)
+                s_delete_message(await message.reply(NOT_ENOUGH_BONUS_HALF), 60)
+                return
+            deck = Deck(
+                user.bot_bind.telegram_account_id,
+                user.bot_bind.telegram_account_username,
+                bonus,
+            )
+            await user.addbonus(-bonus, "blackjack开局")
+            for _ in range(2):
+                deck.dealer_draw()
+                deck.player_draw()
+            play_value = deck.player_hand_value()
+            dealer_value = deck.dealer_hand_value()
+            logger.debug(f"blackjack开局:庄:{dealer_value}-玩家:{play_value}")
+            if deck.player_hand_value() == 21 or deck.dealer_hand_value() == 21:
+                result = await end_game(deck)
+                s_delete_message(
+                    await message.reply(
+                        deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}"
+                    ),
+                    60,
                 )
-                await user.addbonus(-bonus, "blackjack开局")
-                for _ in range(2):
-                    deck.dealer_draw()
-                    deck.player_draw()
-                play_value = deck.player_hand_value()
-                dealer_value = deck.dealer_hand_value()
-                logger.debug(f"blackjack开局:庄:{dealer_value}-玩家:{play_value}")
-                if deck.player_hand_value() == 21 or deck.dealer_hand_value() == 21:
-                    result = await end_game(deck)
-                    s_delete_message(
-                        await message.reply(
-                            deck.get_tg_message_reply(True)
-                            + f"\n\n{result_map[result]}"
-                        ),
-                        60,
-                    )
-                    await message.delete()
-                    return
-                key = f"{message.chat.id}:{message.id}"
+                await message.delete()
+                return
+            key = f"{message.chat.id}:{message.id}"
 
+            game_message = await client.send_message(
+                message.chat.id,
+                deck.get_tg_message_reply(),
+                reply_markup=reply_markup,
+                reply_to_message_id=message.id,
+            )
+            while game_message.empty or game_message.id == message.id:
+                await asyncio.sleep(1)
+                logger.info(f"发送消息失败，尝试重发")
                 game_message = await client.send_message(
                     message.chat.id,
                     deck.get_tg_message_reply(),
                     reply_markup=reply_markup,
                     reply_to_message_id=message.id,
                 )
-                while game_message.empty or game_message.id == message.id:
-                    await asyncio.sleep(1)
-                    logger.info(f"发送消息失败，尝试重发")
-                    game_message = await client.send_message(
-                        message.chat.id,
-                        deck.get_tg_message_reply(),
-                        reply_markup=reply_markup,
-                        reply_to_message_id=message.id,
-                    )
 
-                logger.debug(f"回复消息")
-                key = f"{message.chat.id}:{game_message.id}"
-                game_decks[key] = deck
-                deck.save_to_redis(game_message.chat.id, game_message.id)
-                logger.debug(f"写入key{key}")
+            logger.debug(f"回复消息")
+            key = f"{message.chat.id}:{game_message.id}"
+            game_decks[key] = deck
+            deck.save_to_redis(game_message.chat.id, game_message.id)
+            logger.debug(f"写入key{key}")
 
 
 @Client.on_callback_query(filters.regex(r"add"))
