@@ -268,7 +268,6 @@ async def blackjack(client: Client, message: Message):
                 reply_markup=reply_markup,
                 reply_to_message_id=message.id,
             )
-            logger.info(f"{game_message.text}")
             while game_message.empty or game_message.id == message.id:
                 await asyncio.sleep(1)
                 logger.info(f"发送消息失败，尝试重发")

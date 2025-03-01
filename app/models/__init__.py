@@ -40,9 +40,7 @@ ASSession = async_scoped_session(
 def check_open_sessions():
     open_sessions = [session for session in active_sessions]
     if open_sessions:
-        logger.info("发现未关闭的会话:")
-        for session in open_sessions:
-            logger.info(f"- {session}")
+        logger.info(f"未关闭的会话:{open_sessions}")
     else:
         logger.info("所有会话均已关闭。")
 
