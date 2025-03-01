@@ -1,7 +1,7 @@
 import json
 import logging
 
-from app import scheduler, redis_cli, app
+from app import scheduler, redis_cli, get_app
 from app.models import ASSession
 from app.models.nexusphp import Users
 
@@ -10,6 +10,7 @@ logger = logging.getLogger("main")
 
 async def blackjack_message():
     # 获取所有以 "blackjack" 开头的键
+    app = get_app()
     blackjack_messages_keys = redis_cli.keys("blackjack*")
     async with ASSession() as session:
         async with session.begin():
@@ -36,5 +37,4 @@ async def blackjack_message():
                         redis_cli.delete(key)
 
 
-# 每秒钟执行一次 delete_message 函数
-# scheduler.add_job(blackjack_message, "interval", seconds=60)
+scheduler.add_job(blackjack_message, "interval", seconds=300)
