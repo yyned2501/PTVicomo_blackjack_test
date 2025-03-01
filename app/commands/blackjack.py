@@ -241,7 +241,7 @@ async def blackjack(client: Client, message: Message):
                 user.bot_bind.telegram_account_username,
                 bonus,
             )
-            user.addbonus(-bonus, "blackjack开局")
+            await user.addbonus(-bonus, "blackjack开局")
             for _ in range(2):
                 deck.dealer_draw()
                 deck.player_draw()
@@ -364,7 +364,7 @@ async def end_game(deck: Deck, key: str = None):
             )
         )
         if win_bonus > 0:
-            user.addbonus(win_bonus - tax, "blackjack结局")
+            await user.addbonus(win_bonus - tax, "blackjack结局")
     if key:
         del game_decks[key]
         redis_cli.delete(f"blackjack:{key}")

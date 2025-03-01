@@ -114,7 +114,8 @@ class Users(Base):
     def role_names(self):
         return " ".join([role.name for role in self.roles_names])
 
-    def addbonus(self, bonus: float, comment=""):
+    async def addbonus(self, bonus: float, comment=""):
+        session = ASSession()
         old = self.seedbonus
         bonus = round(bonus, 1)
         new = round(self.seedbonus + bonus, 1)
@@ -136,6 +137,7 @@ class Users(Base):
                 updated_at=datetime.datetime.now(),
             )
         )
+        await session.flush()
         logger.info(f"{self.id}|{old}|{bonus}|{new}|{comment}")
 
     def setvip(self, days=7):
