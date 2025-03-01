@@ -14,4 +14,4 @@ async def get_admin():
     ):
         if m.custom_title:
             ADMINS[m.custom_title] = m.user
-            logger.info(f"{ADMINS}")
+    logger.info(f"{ADMINS}")
