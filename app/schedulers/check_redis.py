@@ -26,6 +26,10 @@ async def blackjack_message():
                     message = await app.get_messages(chatid, messageid)
                     if message:
                         logger.info(f"{message.id}:{message.text}")
+                        if not message.text or message.text[:3] != "玩家：":
+                            user = await Users.get_user_from_tg_id(tg_id)
+                            await user.addbonus(bonus, "21点开局失败返还")
+                            redis_cli.delete(key)
                     else:
                         user = await Users.get_user_from_tg_id(tg_id)
                         await user.addbonus(bonus, "21点开局失败返还")
