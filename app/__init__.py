@@ -23,7 +23,7 @@ class Client(_Client):
         self.bucket = AsyncTokenBucket(capacity=10, fill_rate=1)
 
     async def invoke(self, *arg, err=0, **kargs):
-        if err < 5:
+        if err < 3:
             await self.bucket.consume()
             try:
                 return await super().invoke(*arg, **kargs)
