@@ -259,7 +259,6 @@ async def blackjack(client: Client, message: Message):
                 await message.delete()
                 return
             key = f"{message.chat.id}:{message.id}"
-            game_decks[key] = deck
 
             game_message = await client.send_message(
                 message.chat.id,
@@ -267,7 +266,11 @@ async def blackjack(client: Client, message: Message):
                 reply_markup=reply_markup,
                 reply_to_message_id=message.id,
             )
+            logger.info(f"回复消息")
+            key = f"{message.chat.id}:{game_message.id}"
+            game_decks[key] = deck
             deck.save_to_redis(game_message.chat.id, game_message.id)
+            logger.info(f"写入key{game_message.id}")
 
 
 @Client.on_callback_query(filters.regex(r"add"))
