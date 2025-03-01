@@ -43,9 +43,9 @@ redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 
 async def start_app():
+    global app
     from app import schedulers
 
-    global app
     app = Client(
         "tgbot",
         api_id=API_ID,
@@ -61,3 +61,8 @@ async def start_app():
     await idle()
     await app.stop()
     logger.info("关闭主程序")
+
+
+def get_app():
+    global app
+    return app
