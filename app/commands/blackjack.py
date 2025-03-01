@@ -226,8 +226,8 @@ async def blackjack(client: Client, message: Message):
         s_delete_message(reply_message, 60)
         return
     async with ASSession() as session:
-        logger.debug(f"blackjack:{session}")
-        check_open_sessions()
+        logger.info(f"blackjack:{session}")
+        await check_open_sessions()
         async with session.begin():
             user = await Users.get_user_from_tgmessage(message)
             if not user:
