@@ -32,6 +32,8 @@ class TrackedAsyncSession(AsyncSession):
         logger.info(f"{self} begin")
         if not self.in_transaction():
             return super().begin()
+        else:
+            return self.begin_nested()
 
 
 async_connection_string = (
