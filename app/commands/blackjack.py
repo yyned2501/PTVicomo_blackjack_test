@@ -245,6 +245,9 @@ async def blackjack(client: Client, message: Message):
             for _ in range(2):
                 deck.dealer_draw()
                 deck.player_draw()
+            play_value = deck.player_hand_value()
+            dealer_value = deck.dealer_hand_value()
+            logger.info(f"blackjack开局:庄:{dealer_value}-玩家:{play_value}")
             if deck.player_hand_value() == 21 or deck.dealer_hand_value() == 21:
                 result = await end_game(deck)
                 s_delete_message(
