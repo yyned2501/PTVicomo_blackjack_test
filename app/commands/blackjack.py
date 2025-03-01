@@ -14,7 +14,7 @@ from pyrogram.types import (
 )
 
 from app.libs.decorators import auto_delete_message, s_delete_message
-from app.models import ASSession
+from app.models import ASSession, check_open_sessions
 from app.models.nexusphp import BlackJackHistory, BotBinds, Users
 from app.normal_reply import USER_BIND_NONE, NOT_ENOUGH_BONUS_HALF
 from config import GROUP_ID
@@ -226,6 +226,7 @@ async def blackjack(client: Client, message: Message):
         return
     async with ASSession() as session:
         logger.debug(f"blackjack:{session}")
+        check_open_sessions()
         async with session.begin():
             user = await Users.get_user_from_tgmessage(message)
             if not user:
@@ -446,7 +447,7 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
             ret_message,
             reply_markup=blackjackrank_reply_markup,
         )
-    await callback_query.answer(f"刷新成功")
+    return 200
 
 
 async def get_blackjack_pool(user: Users = None):
