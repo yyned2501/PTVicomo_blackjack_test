@@ -181,7 +181,7 @@ class Users(Base):
     @classmethod
     async def get_user_from_tg_id(cls, tg_id: int):
         session = ASSession()
-        logger.info(f"get_user_from_tg_id:{session}")
+        logger.debug(f"get_user_from_tg_id:{session}")
         self = (
             (
                 await session.execute(
@@ -199,7 +199,7 @@ class Users(Base):
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
         session = ASSession()
-        logger.info(f"get_user_from_tgmessage:{session}")
+        logger.debug(f"get_user_from_tgmessage:{session}")
         tg_name = " ".join(
             [
                 name
