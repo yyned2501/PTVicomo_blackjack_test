@@ -1,1 +1,1 @@
-from app.schedulers import fresh, check_redis
+from app.schedulers import fresh
