@@ -21,12 +21,15 @@ class TrackedAsyncSession(AsyncSession):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         active_sessions.add(self)
+        logger.info(f"{self} add")
 
     async def close(self):
         await super().close()
+        logger.info(f"{self} close")
         active_sessions.discard(self)
 
     def begin(self):
+        logger.info(f"{self} begin")
         if not self.in_transaction():
             return super().begin()
 
