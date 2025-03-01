@@ -15,7 +15,7 @@ async def blackjack_message():
         async with session.begin():
             if blackjack_messages_keys:
                 for key in blackjack_messages_keys:
-                    key_info_list = str(key).split(":")
+                    key_info_list = str(key)[1:-1].split(":")
                     chatid = int(key_info_list[1])
                     messageid = int(key_info_list[2])
                     value = redis_cli.get(key)
