@@ -225,7 +225,7 @@ async def blackjack(client: Client, message: Message):
         s_delete_message(reply_message, 60)
         return
     async with ASSession() as session:
-        logger.info(f"blackjack:{session}")
+        logger.debug(f"blackjack:{session}")
         async with session.begin():
             user = await Users.get_user_from_tgmessage(message)
             if not user:
@@ -247,7 +247,7 @@ async def blackjack(client: Client, message: Message):
                 deck.player_draw()
             play_value = deck.player_hand_value()
             dealer_value = deck.dealer_hand_value()
-            logger.info(f"blackjack开局:庄:{dealer_value}-玩家:{play_value}")
+            logger.debug(f"blackjack开局:庄:{dealer_value}-玩家:{play_value}")
             if deck.player_hand_value() == 21 or deck.dealer_hand_value() == 21:
                 result = await end_game(deck)
                 s_delete_message(
@@ -266,11 +266,11 @@ async def blackjack(client: Client, message: Message):
                 reply_markup=reply_markup,
                 reply_to_message_id=message.id,
             )
-            logger.info(f"回复消息")
+            logger.debug(f"回复消息")
             key = f"{message.chat.id}:{game_message.id}"
             game_decks[key] = deck
             deck.save_to_redis(game_message.chat.id, game_message.id)
-            logger.info(f"写入key{key}")
+            logger.debug(f"写入key{key}")
 
 
 @Client.on_callback_query(filters.regex(r"add"))
@@ -331,7 +331,7 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
     if callback_query.from_user.id != deck.tg_id:
         return await callback_query.answer("不能操作别人的游戏", show_alert=True)
     async with ASSession() as session:
-        logger.info(f"done:{key}:{session}")
+        logger.debug(f"done:{key}:{session}")
         async with session.begin():
             result = await end_game(deck, key)
             await callback_query.message.edit_text(
@@ -348,7 +348,7 @@ result_map = {1: "你赢了！", 0: "平局！", -1: "你输了！"}
 async def end_game(deck: Deck, key: str = None):
     result = deck.calculate_result()
     session = ASSession()
-    logger.info(f"end_game:{key},{session}")
+    logger.debug(f"end_game:{key},{session}")
     async with session.begin_nested():
         user = await Users.get_user_from_tg_id(deck.tg_id)
         win_bonus = 0
