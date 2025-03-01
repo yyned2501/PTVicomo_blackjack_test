@@ -1,7 +1,9 @@
 import pyrogram
 from app import Client
 from config import GROUP_ID
+import logging
 
+logger = logging.getLogger("main")
 
 ADMINS: dict[str, pyrogram.types.User] = {}
 
@@ -12,3 +14,4 @@ async def get_admin():
     ):
         if m.custom_title:
             ADMINS[m.custom_title] = m.user
+            logger.info(f"{ADMINS}")

@@ -270,7 +270,7 @@ async def blackjack(client: Client, message: Message):
             key = f"{message.chat.id}:{game_message.id}"
             game_decks[key] = deck
             deck.save_to_redis(game_message.chat.id, game_message.id)
-            logger.info(f"写入key{game_message.id}")
+            logger.info(f"写入key{key}")
 
 
 @Client.on_callback_query(filters.regex(r"add"))
