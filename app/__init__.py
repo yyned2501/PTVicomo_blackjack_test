@@ -3,7 +3,9 @@ import os
 import traceback
 
 import pyrogram
+import pyrogram.errors
 import redis
+import pyrogram
 from pyrogram import Client as _Client
 from pyrogram import idle
 
@@ -29,6 +31,8 @@ class Client(_Client):
                 logger.error(traceback.format_exc())
                 asyncio.sleep(1)
                 return await self.invoke(*arg, err=err + 1, **kargs)
+            except pyrogram.errors.exceptions.bad_request_400.QueryIdInvalid:
+                logger.error(traceback.format_exc())
             except Exception as e:
                 logger.error(traceback.format_exc())
                 asyncio.sleep(1)
