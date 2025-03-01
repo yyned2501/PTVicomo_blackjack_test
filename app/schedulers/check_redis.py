@@ -37,4 +37,4 @@ async def blackjack_message():
                         redis_cli.delete(key)
 
 
-scheduler.add_job(blackjack_message, "interval", seconds=300)
+# scheduler.add_job(blackjack_message, "interval", seconds=300)
