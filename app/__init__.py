@@ -2,6 +2,7 @@ import asyncio
 import os
 import traceback
 
+import pyrogram
 import redis
 from pyrogram import Client as _Client
 from pyrogram import idle
@@ -25,14 +26,14 @@ class Client(_Client):
             try:
                 return await super().invoke(*arg, **kargs)
             except TimeoutError as e:
-                logger.error(e, traceback.format_exc())
+                logger.error(traceback.format_exc())
                 asyncio.sleep(1)
                 return await self.invoke(*arg, err=err + 1, **kargs)
             except Exception as e:
-                logger.error(e, traceback.format_exc())
+                logger.error(traceback.format_exc())
                 asyncio.sleep(1)
                 return await self.invoke(*arg, err=err + 1, **kargs)
-        
+
 
 os.environ["TZ"] = "Asia/Shanghai"
 scheduler = AsyncIOScheduler()

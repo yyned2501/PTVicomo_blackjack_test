@@ -280,11 +280,9 @@ async def handle_callback_query(client: Client, callback_query: CallbackQuery):
     key = f"{chat_id}:{message_id}"
     deck = get_deck_by_message_id(chat_id, message_id)
     if not deck:
-        await callback_query.answer("无法找到游戏数据。", show_alert=True)
-        return
+        return await callback_query.answer("无法找到游戏数据。", show_alert=True)
     if callback_query.from_user.id != deck.tg_id:
-        await callback_query.answer("不能操作别人的游戏", show_alert=True)
-        return
+        return await callback_query.answer("不能操作别人的游戏", show_alert=True)
     async with ASSession() as session:
         async with session.begin():
             if (
@@ -312,14 +310,14 @@ async def handle_callback_query(client: Client, callback_query: CallbackQuery):
                     deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
                 )
                 s_delete_message(callback_query.message, 60)
-                await callback_query.message.reply_to_message.delete()
+                s_delete_message(callback_query.message.reply_to_message)
                 return
             await callback_query.message.edit_text(
                 deck.get_tg_message_reply(),
                 reply_markup=reply_markup,
             )
             deck.save_to_redis(chat_id, message_id)
-    await callback_query.answer(f"刷新成功")
+    return await callback_query.answer(f"刷新成功")
 
 
 @Client.on_callback_query(filters.regex(r"done"))
@@ -329,11 +327,9 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
     key = f"{chat_id}:{message_id}"
     deck = get_deck_by_message_id(chat_id, message_id)
     if not deck:
-        await callback_query.answer("无法找到游戏数据。", show_alert=True)
-        return
+        return await callback_query.answer("无法找到游戏数据。", show_alert=True)
     if callback_query.from_user.id != deck.tg_id:
-        await callback_query.answer("不能操作别人的游戏", show_alert=True)
-        return
+        return await callback_query.answer("不能操作别人的游戏", show_alert=True)
     async with ASSession() as session:
         logger.info(f"done:{key}:{session}")
         async with session.begin():
@@ -342,8 +338,8 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
                 deck.get_tg_message_reply(True) + f"\n\n{result_map[result]}",
             )
             s_delete_message(callback_query.message, 60)
-            await callback_query.message.reply_to_message.delete()
-    await callback_query.answer(f"刷新成功")
+            s_delete_message(callback_query.message.reply_to_message)
+    return await callback_query.answer(f"刷新成功")
 
 
 result_map = {1: "你赢了！", 0: "平局！", -1: "你输了！"}
