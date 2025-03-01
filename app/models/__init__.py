@@ -33,6 +33,7 @@ class TrackedAsyncSession(AsyncSession):
         if not self.in_transaction():
             return super().begin()
         else:
+            logger.warning(f"{self} is begun use begin_nested instead")
             return self.begin_nested()
 
 
