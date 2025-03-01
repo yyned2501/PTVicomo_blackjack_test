@@ -1,3 +1,4 @@
+import asyncio
 import json
 import random
 import logging
@@ -267,6 +268,16 @@ async def blackjack(client: Client, message: Message):
                 reply_markup=reply_markup,
                 reply_to_message_id=message.id,
             )
+            while game_message.empty:
+                asyncio.sleep(1)
+                logger.info(f"发送消息失败，尝试重发")
+                game_message = await client.send_message(
+                    message.chat.id,
+                    deck.get_tg_message_reply(),
+                    reply_markup=reply_markup,
+                    reply_to_message_id=message.id,
+                )
+
             logger.debug(f"回复消息")
             key = f"{message.chat.id}:{game_message.id}"
             game_decks[key] = deck
