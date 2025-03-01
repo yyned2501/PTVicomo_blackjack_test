@@ -25,7 +25,7 @@ async def blackjack_message():
                     bonus = data.get("bonus")
                     message = await app.get_messages(chatid, messageid)
                     if message:
-                        pass
+                        logger.info(f"{message.id}:{message.text}")
                     else:
                         user = await Users.get_user_from_tg_id(tg_id)
                         await user.addbonus(bonus, "21点开局失败返还")
