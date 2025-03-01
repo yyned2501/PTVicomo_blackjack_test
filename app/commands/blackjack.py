@@ -417,8 +417,9 @@ async def generate_rank_message(date_filter):
     return ret
 
 
-@Client.on_message(filters.chat(GROUP_ID) & filters.command("blackjackrank"))
-@Client.on_message(filters.private & filters.command("blackjackrank"))
+@Client.on_message(
+    (filters.chat(GROUP_ID) | filters.private) & filters.command("blackjackrank")
+)
 @auto_delete_message(60)
 async def blackjackrank(client: Client, message: Message):
     rank_message = await generate_rank_message(func.date(func.now()))
