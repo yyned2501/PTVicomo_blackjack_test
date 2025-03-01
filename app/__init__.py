@@ -20,18 +20,19 @@ class Client(_Client):
         self.bucket = AsyncTokenBucket(capacity=10, fill_rate=1)
 
     async def invoke(self, *arg, err=0, **kargs):
-        await self.bucket.consume()
-        try:
-            return await super().invoke(*arg, **kargs)
-        except TimeoutError as e:
-            logger.error(e, traceback.format_exc())
-            asyncio.sleep(1)
-            return await self.invoke(*arg, err=err + 1, **kargs)
-        except Exception as e:
-            logger.error(e, traceback.format_exc())
-            asyncio.sleep(1)
-            return await self.invoke(*arg, err=err + 1, **kargs)
-
+        if err < 5:
+            await self.bucket.consume()
+            try:
+                return await super().invoke(*arg, **kargs)
+            except TimeoutError as e:
+                logger.error(e, traceback.format_exc())
+                asyncio.sleep(1)
+                return await self.invoke(*arg, err=err + 1, **kargs)
+            except Exception as e:
+                logger.error(e, traceback.format_exc())
+                asyncio.sleep(1)
+                return await self.invoke(*arg, err=err + 1, **kargs)
+        
 
 os.environ["TZ"] = "Asia/Shanghai"
 scheduler = AsyncIOScheduler()
