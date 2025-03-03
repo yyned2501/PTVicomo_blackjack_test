@@ -428,35 +428,40 @@ async def generate_rank_message(date_filter):
 )
 @auto_delete_message(60)
 async def blackjackrank(client: Client, message: Message):
-    rank_message = await generate_rank_message(func.date(func.now()))
-    return await message.reply(
-        f"`21点今日榜单:`\n{rank_message}", reply_markup=blackjackrank_reply_markup
-    )
+    async with ASSession() as session:
+        async with session.begin():
+            rank_message = await generate_rank_message(func.date(func.now()))
+            return await message.reply(
+                f"`21点今日榜单:`\n{rank_message}",
+                reply_markup=blackjackrank_reply_markup,
+            )
 
 
 @Client.on_callback_query(filters.regex(r"rank_(all|yesterday|today)"))
 async def handle_rank_callback_query(client: Client, callback_query: CallbackQuery):
-    query_type = callback_query.data.split("_")[1]
-    if query_type == "all":
-        date_filter = None
-        rank_name = "历史榜单"
-    elif query_type == "yesterday":
-        date_filter = func.date(
-            func.date_sub(func.current_date(), text("INTERVAL 1 DAY"))
-        )
-        rank_name = "昨日榜单"
-    elif query_type == "today":
-        date_filter = func.date(func.now())
-        rank_name = "今日榜单"
+    async with ASSession() as session:
+        async with session.begin():
+            query_type = callback_query.data.split("_")[1]
+            if query_type == "all":
+                date_filter = None
+                rank_name = "历史榜单"
+            elif query_type == "yesterday":
+                date_filter = func.date(
+                    func.date_sub(func.current_date(), text("INTERVAL 1 DAY"))
+                )
+                rank_name = "昨日榜单"
+            elif query_type == "today":
+                date_filter = func.date(func.now())
+                rank_name = "今日榜单"
 
-    rank_message = await generate_rank_message(date_filter)
-    ret_message = f"`21点{rank_name}:`\n{rank_message}"
-    if ret_message != callback_query.message.content:
-        await callback_query.message.edit_text(
-            ret_message,
-            reply_markup=blackjackrank_reply_markup,
-        )
-    return 200
+            rank_message = await generate_rank_message(date_filter)
+            ret_message = f"`21点{rank_name}:`\n{rank_message}"
+            if ret_message != callback_query.message.content:
+                await callback_query.message.edit_text(
+                    ret_message,
+                    reply_markup=blackjackrank_reply_markup,
+                )
+            return 200
 
 
 async def get_blackjack_pool(user: Users = None):
