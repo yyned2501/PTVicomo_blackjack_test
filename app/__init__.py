@@ -29,15 +29,13 @@ class Client(_Client):
                 return await super().invoke(*arg, **kargs)
             except TimeoutError as e:
                 logger.error(traceback.format_exc())
-                asyncio.sleep(1)
                 return await self.invoke(*arg, err=err + 1, **kargs)
-            except pyrogram.errors.exceptions.bad_request_400.QueryIdInvalid:
-                logger.error(traceback.format_exc())
-            except pyrogram.errors.exceptions.bad_request_400.MessageNotModified:
-                logger.error(traceback.format_exc())
+            # except pyrogram.errors.exceptions.bad_request_400.QueryIdInvalid:
+            #     logger.error(traceback.format_exc())
+            # except pyrogram.errors.exceptions.bad_request_400.MessageNotModified:
+            #     logger.error(traceback.format_exc())
             except Exception as e:
                 logger.error(traceback.format_exc())
-                asyncio.sleep(1)
                 return await self.invoke(*arg, err=err + 1, **kargs)
 
 
