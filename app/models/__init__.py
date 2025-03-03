@@ -30,6 +30,7 @@ class TrackedAsyncSession(AsyncSession):
 
     def begin(self):
         logger.debug(f"{self} begin")
+        check_open_sessions()
         if not self.in_transaction():
             return super().begin()
         else:
@@ -47,8 +48,8 @@ ASSession = async_scoped_session(
 )
 
 
-async def check_open_sessions():
-    logger.info(f"open_sessions:{[session for session in active_sessions]}")
+def check_open_sessions():
+    logger.debug(f"open_sessions:{[session for session in active_sessions]}")
 
 
 async def create_all():
