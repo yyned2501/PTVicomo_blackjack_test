@@ -6,6 +6,7 @@ from sqlalchemy import column, desc, func, select, text
 
 from app import redis_cli
 from pyrogram import filters, Client
+from pyrogram.utils import parse_text_entities
 from pyrogram.types.messages_and_media import Message
 from pyrogram.types import (
     Message,
@@ -456,12 +457,9 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
 
             rank_message = await generate_rank_message(date_filter)
             ret_message = f"`21点{rank_name}:`\n{rank_message}"
-            logger.info(f"rank_message:{ret_message}")
-            logger.info(
-                f"callback_query.message.content:{callback_query.message.content}"
-            )
-            logger.info(f"{callback_query.message}")
-            if ret_message != callback_query.message.content:
+            ret_message_parse = await parse_text_entities(ret_message)
+            ret_text = ret_message_parse["message"]
+            if ret_text != callback_query.message.text:
                 await callback_query.message.edit_text(
                     ret_message,
                     reply_markup=blackjackrank_reply_markup,
