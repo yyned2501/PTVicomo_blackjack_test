@@ -6,7 +6,7 @@ formatter = logging.Formatter("[%(levelname)s] %(asctime)s - %(name)s - %(messag
 
 
 logger = logging.getLogger("main")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 file_handler = RotatingFileHandler(
     "logs/main.log", maxBytes=10 * 1024 * 1024, backupCount=5
 )
