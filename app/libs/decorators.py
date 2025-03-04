@@ -6,16 +6,16 @@ from app import redis_cli, Client
 
 
 def s_delete_message(message: Message, delay=0):
-    data = {
-        "chatid": message.chat.id,
-        "messageid": message.id,
-        "deletetime": int(time.time()) + delay,
-    }
-
-    redis_cli.set(
-        f"DM:{message.chat.id}:{message.id}",
-        json.dumps(data),
-    )
+    if message and not message.empty:
+        data = {
+            "chatid": message.chat.id,
+            "messageid": message.id,
+            "deletetime": int(time.time()) + delay,
+        }
+        redis_cli.set(
+            f"DM:{message.chat.id}:{message.id}",
+            json.dumps(data),
+        )
 
 
 def auto_delete_message(
