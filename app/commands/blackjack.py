@@ -16,7 +16,7 @@ from pyrogram.types import (
 )
 
 from app.libs.decorators import auto_delete_message, s_delete_message
-from app.models import ASSession, check_open_sessions
+from app.models import ASSession
 from app.models.nexusphp import BlackJackHistory, BotBinds, Users
 from app.normal_reply import USER_BIND_NONE, NOT_ENOUGH_BONUS_HALF
 from config import GROUP_ID
