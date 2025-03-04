@@ -456,6 +456,11 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
 
             rank_message = await generate_rank_message(date_filter)
             ret_message = f"`21点{rank_name}:`\n{rank_message}"
+            logger.info(f"rank_message:{ret_message}")
+            logger.info(
+                f"callback_query.message.content:{callback_query.message.content}"
+            )
+            logger.info(f"{callback_query.message}")
             if ret_message != callback_query.message.content:
                 await callback_query.message.edit_text(
                     ret_message,
