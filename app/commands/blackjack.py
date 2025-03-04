@@ -458,7 +458,7 @@ async def handle_rank_callback_query(client: Client, callback_query: CallbackQue
             rank_message = await generate_rank_message(date_filter)
 
             ret_message = f"`21点{rank_name}:`\n{rank_message}"
-            mkd = Markdown(client)
+            mkd = Markdown()
             message_text = mkd.unparse(
                 callback_query.message.text, callback_query.message.entities
             )
