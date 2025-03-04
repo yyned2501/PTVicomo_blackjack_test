@@ -18,10 +18,13 @@ active_sessions = weakref.WeakSet()
 
 
 class TrackedAsyncSession(AsyncSession):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
+    async def connection(self, *args, **kwargs):
         active_sessions.add(self)
-        logger.debug(f"{self} add")
+        logger.debug(f"{self} connection")
+        return await super().connection(*args, **kwargs)
 
     async def close(self):
         await super().close()

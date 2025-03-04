@@ -21,7 +21,7 @@ class Client(_Client):
     def __init__(self, *arg, **karg):
         super().__init__(*arg, **karg)
         self.bucket = AsyncTokenBucket(capacity=10, fill_rate=5)
-
+    
     async def invoke(self, *arg, err=0, **kargs):
         if err < 3:
             await self.bucket.consume()
@@ -37,7 +37,6 @@ class Client(_Client):
             except Exception as e:
                 logger.error(traceback.format_exc())
                 return await self.invoke(*arg, err=err + 1, **kargs)
-
 
 os.environ["TZ"] = "Asia/Shanghai"
 scheduler = AsyncIOScheduler()
