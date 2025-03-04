@@ -18,13 +18,9 @@ active_sessions = weakref.WeakSet()
 
 
 class TrackedAsyncSession(AsyncSession):
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
-    async def connection(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         active_sessions.add(self)
-        logger.debug(f"{self} connection")
-        return await super().connection(*args, **kwargs)
 
     async def close(self):
         await super().close()
@@ -39,6 +35,14 @@ class TrackedAsyncSession(AsyncSession):
         else:
             logger.warning(f"{self} is begun use begin_nested instead")
             return self.begin_nested()
+
+    def __call__(self, *args, **kwds):
+        logger.debug(f"{self} call")
+        return super().__call__(*args, **kwds)
+
+
+def scope_task(loop):
+    return asyncio.current_task(loop)
 
 
 async_connection_string = (
