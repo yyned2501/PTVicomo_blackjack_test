@@ -27,7 +27,7 @@ async def get_admin():
 class CommandScope(Enum):
     PRIVATE_CHATS = BotCommandScopeAllPrivateChats()
     GROUP_CHAT = BotCommandScopeChat(chat_id=GROUP_ID[0])
-    GROUP_CHAT_ADMIN = BotCommandScopeChatAdministrators(chat_id=GROUP_ID[0])
+    # GROUP_CHAT_ADMIN = BotCommandScopeChatAdministrators(chat_id=GROUP_ID[0])
     ADMIN_CHAT = BotCommandScopeChat(chat_id=GROUP_ID[1])
 
 
@@ -80,8 +80,8 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
     (BotCommand("login", "获取登陆连接"), [CommandScope.PRIVATE_CHATS]),
     (BotCommand("cancel2fa", "取消两步验证"), [CommandScope.PRIVATE_CHATS]),
     (BotCommand("cancel2fa", "取消两步验证"), [CommandScope.PRIVATE_CHATS]),
-    (BotCommand("ban", "禁言用户"), [CommandScope.GROUP_CHAT_ADMIN]),
-    (BotCommand("unban", "取消禁言"), [CommandScope.GROUP_CHAT_ADMIN]),
+    # (BotCommand("ban", "禁言用户"), [CommandScope.GROUP_CHAT_ADMIN]),
+    # (BotCommand("unban", "取消禁言"), [CommandScope.GROUP_CHAT_ADMIN]),
 ]
 
 
