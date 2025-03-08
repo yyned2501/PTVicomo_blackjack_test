@@ -58,9 +58,18 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
     (BotCommand("lotteryinfoall", "全部玩家彩票收益情况"), [CommandScope.GROUP_CHAT]),
     (BotCommand("lotteryrank", "彩票收益排行榜"), [CommandScope.GROUP_CHAT]),
     (BotCommand("lotteryhistory", "历史彩票记录"), [CommandScope.GROUP_CHAT]),
-    (BotCommand("blackjack", "开始一轮21点游戏"), [CommandScope.GROUP_CHAT]),
-    (BotCommand("blackjackrank", "21点游戏排行榜"), [CommandScope.GROUP_CHAT]),
-    (BotCommand("blackjackinfo", "21点收益情况"), [CommandScope.GROUP_CHAT]),
+    (
+        BotCommand("blackjack", "开始一轮21点游戏"),
+        [CommandScope.PRIVATE_CHATS, CommandScope.GROUP_CHAT],
+    ),
+    (
+        BotCommand("blackjackrank", "21点游戏排行榜"),
+        [CommandScope.PRIVATE_CHATS, CommandScope.GROUP_CHAT],
+    ),
+    (
+        BotCommand("blackjackinfo", "21点收益情况"),
+        [CommandScope.PRIVATE_CHATS, CommandScope.GROUP_CHAT],
+    ),
     (BotCommand("blackjackinfoall", "全部玩家21点收益情况"), [CommandScope.GROUP_CHAT]),
     (
         BotCommand("water", "水群排行榜"),
