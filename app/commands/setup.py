@@ -2,7 +2,6 @@ from enum import Enum
 import pyrogram
 from pyrogram.types import (
     BotCommand,
-    BotCommandScope,
     BotCommandScopeAllPrivateChats,
     BotCommandScopeChat,
     BotCommandScopeChatAdministrators,
@@ -32,7 +31,7 @@ class CommandScope(Enum):
     ADMIN_CHAT = BotCommandScopeChat(chat_id=GROUP_ID[1])
 
 
-BOT_COMMANDS: list[tuple[BotCommand, list[BotCommandScope]]] = [
+BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
     (
         BotCommand("info", "查看绑定账号信息"),
         [CommandScope.PRIVATE_CHATS, CommandScope.GROUP_CHAT],
@@ -88,6 +87,6 @@ async def setup_commands():
     # 设置新命令
     for cmd, scopes in BOT_COMMANDS:
         for scope in scopes:
-            scopes_dict[scope].append(cmd)
+            scopes_dict[scope.name].append(cmd)
     for scope, commands in scopes_dict.items():
         await app.set_bot_commands(commands, scope=CommandScope[scope].value)
