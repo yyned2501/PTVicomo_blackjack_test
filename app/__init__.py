@@ -21,6 +21,7 @@ redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 async def start_app():
     from app import schedulers
     from app import models
+    from app.commands import setup
 
     global app
     app = Client(
@@ -34,6 +35,9 @@ async def start_app():
     logger.info("启动主程序")
     await app.start()
     await models.create_all()
+    await setup.get_admin()
+    logger.info("设置命令")
+    await setup.setup_commands()
     scheduler.start()
     logger.info("监听主程序")
     await idle()
