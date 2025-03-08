@@ -96,6 +96,9 @@ async def setup_commands():
     # 设置新命令
     for cmd, scopes in BOT_COMMANDS:
         for scope in scopes:
+            # 群聊管理员命令也会被群聊命令覆盖
+            if scope == CommandScope.GROUP_CHAT:
+                scopes_dict[CommandScope.GROUP_CHAT_ADMIN.name].append(cmd)
             scopes_dict[scope.name].append(cmd)
     for scope, commands in scopes_dict.items():
         await app.set_bot_commands(commands, scope=CommandScope[scope].value)
