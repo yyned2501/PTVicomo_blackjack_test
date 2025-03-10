@@ -31,9 +31,9 @@ async def transbonus(client: Client, message: Message):
                 return await message.reply(REPLY_USER_BIND_NONE)
             if from_user.seedbonus < bonus:
                 return await message.reply(NOT_ENOUGH_BONUS)
-            from_user.addbonus(-bonus, f"转账给 {to_user.username}")
+            await from_user.addbonus(-bonus, f"转账给 {to_user.username}")
             tax = bonus * TAX_RATE
-            to_user.addbonus(bonus - tax, f"收到 {from_user.username} 转账")
+            await to_user.addbonus(bonus - tax, f"收到 {from_user.username} 转账")
             return await message.reply(
                 Template(TRANSBONUS_SUCCESS).render(
                     from_user=from_user.bot_bind.telegram_account_username,

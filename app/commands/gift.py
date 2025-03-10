@@ -64,7 +64,7 @@ async def water(client: Client, message: Message):
 @app.on_message(filters.chat(GROUP_ID) & ~filters.bot, group=1)
 @auto_delete_message(delete_from_message=False)
 async def bonus(client: Client, message: Message):
-    if message.text.startswith(("/", "+")):
+    if message.content.startswith(("/", "+")):
         return
     r = random.random()
     async with ASSession() as session:

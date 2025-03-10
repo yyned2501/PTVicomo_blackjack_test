@@ -191,7 +191,7 @@ async def bet_lottery(client: Client, message: Message):
                     return await message.reply(USER_BIND_NONE)
                 if user.user.seedbonus < bonus:
                     return await message.reply(NOT_ENOUGH_BONUS)
-                user.addbonus(-bonus, f"彩票下注{lottery_numbers}")
+                await user.addbonus(-bonus, f"彩票下注{lottery_numbers}")
                 tg_id = str(user.bot_bind.telegram_account_id)
                 if tg_id not in data["users"]:
                     data["users"][tg_id] = {
@@ -279,7 +279,7 @@ async def draw_lottery():
                         ret += f"\n  {user_ret} : `[{lottery_numbers}]中奖[{same_count}]个数字 : {win_bonus:,} 扣税 {tax:,}`"
                 if win_bonus_sum > 0:
                     user = await session.get(Users, data["users"][tgid]["userid"])
-                    user.addbonus(win_bonus_sum, f"彩票开奖 {number_str} 中奖")
+                    await user.addbonus(win_bonus_sum, f"彩票开奖 {number_str} 中奖")
             redis_cli.delete("lottery")
         s_delete_message(await app.send_message(GROUP_ID[0], ret), 120)
 
