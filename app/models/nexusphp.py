@@ -21,6 +21,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pyrogram.types.messages_and_media import Message
 
+from app.commands.setup import ADMINS
 from app.models import ASSession
 from app.models.base import Base
 from app.libs.func import format_byte_size
@@ -179,27 +180,57 @@ class Users(Base):
             return True
 
     @classmethod
+    async def bind(cls, passkey: str, message: Message):
+        session = ASSession()
+        async with session.begin():
+            user = (
+                await session.execute(select(cls).filter(cls.passkey == passkey))
+            ).scalar_one_or_none()
+            if user:
+                tg_name = user.get_tg_name(message)
+                tg_id = message.from_user.id
+                if user.bot_bind:
+                    user.bot_bind.uid = user.id
+                    user.bot_bind.telegram_account_id = tg_id
+                    user.bot_bind.telegram_account_username = tg_name
+                else:
+                    user.bot_bind = BotBinds(
+                        uid=user.id,
+                        telegram_account_id=tg_id,
+                        telegram_account_username=tg_name,
+                    )
+                    session.add(user.bot_bind)
+                return True
+
+    async def unbind(self):
+        session = ASSession()
+        async with session.begin():
+            if self.bot_bind:
+                await session.delete(self.bot_bind)
+
+    @classmethod
     async def get_user_from_tg_id(cls, tg_id: int):
         session = ASSession()
-        logger.debug(f"get_user_from_tg_id:{session}")
-        self = (
-            (
+        async with session.begin():
+            user = (
                 await session.execute(
                     select(cls)
                     .join(BotBinds, cls.id == BotBinds.uid)
                     .filter(BotBinds.telegram_account_id == tg_id)
                 )
-            )
-            .scalars()
-            .one_or_none()
-        )
-        if self:
-            return self
+            ).scalar_one_or_none()
+            if user:
+                return user
 
-    @classmethod
-    async def get_user_from_tgmessage(cls, message: Message):
-        session = ASSession()
-        logger.debug(f"get_user_from_tgmessage:{session}")
+    @staticmethod
+    def get_tg_name(message: Message):
+        if not message.from_user:
+            if message.author_signature:
+                message.from_user = ADMINS[message.author_signature]
+                message.from_user.first_name = message.author_signature
+            if message.sender_chat:
+                message.from_user = message.sender_chat
+                message.from_user.first_name = message.sender_chat.title
         tg_name = " ".join(
             [
                 name
@@ -210,11 +241,23 @@ class Users(Base):
                 if name
             ]
         )
-        user = await cls.get_user_from_tg_id(message.from_user.id)
-        if user:
-            user.bot_bind.telegram_account_username = tg_name
+        return tg_name
+
+    async def update_tg_name(self, message: Message):
+        session = ASSession()
+        async with session.begin():
+            tg_name = self.get_tg_name(message)
+            self.bot_bind.telegram_account_username = tg_name
             await session.flush()
-            return user
+
+    @classmethod
+    async def get_user_from_tgmessage(cls, message: Message):
+        session = ASSession()
+        async with session.begin():
+            user = await cls.get_user_from_tg_id(message.from_user.id)
+            if user:
+                await user.update_tg_name(message)
+                return user
 
 
 class BonusLogs(Base):
@@ -338,6 +381,20 @@ class TgMessages(Base):
     day_count: Mapped[int] = mapped_column(Integer, default=0)
     month_count: Mapped[int] = mapped_column(Integer, default=0)
     total_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    @classmethod
+    async def get_tgmess_from_tgmessage(cls, message: Message):
+        session = ASSession()
+        tg_id = message.from_user.id
+        async with session.begin():
+            tgmess = (
+                await session.execute(select(cls).filter(cls.tg_id == tg_id))
+            ).scalar_one_or_none()
+            if not tgmess:
+                tg_name = Users.get_tg_name(message)
+                tgmess = cls(tg_id=tg_id, tg_name=tg_name)
+                session.add(tgmess)
+            return tgmess
 
     def send_message(self):
         self.day_count += 1

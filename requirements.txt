@@ -13,3 +13,4 @@ aiomysql
 redis
 pyyaml
 
+jinja2

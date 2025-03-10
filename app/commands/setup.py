@@ -79,7 +79,6 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
     (BotCommand("unbind", "解除账号绑定"), [CommandScope.PRIVATE_CHATS]),
     (BotCommand("login", "获取登陆连接"), [CommandScope.PRIVATE_CHATS]),
     (BotCommand("cancel2fa", "取消两步验证"), [CommandScope.PRIVATE_CHATS]),
-    (BotCommand("cancel2fa", "取消两步验证"), [CommandScope.PRIVATE_CHATS]),
     (BotCommand("ban", "禁言用户"), [CommandScope.GROUP_CHAT_ADMIN]),
     (BotCommand("unban", "取消禁言"), [CommandScope.GROUP_CHAT_ADMIN]),
 ]
