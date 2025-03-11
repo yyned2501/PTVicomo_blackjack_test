@@ -3,6 +3,7 @@ from pyrogram import filters, Client
 from pyrogram.types.messages_and_media import Message
 
 from app import app
+from app.libs.decorators import auto_delete_message
 from app.normal_reply import USER_BIND_NONE, NOT_ENOUGH_BONUS
 from app.models import ASSession
 from app.models.nexusphp import Users
@@ -14,6 +15,7 @@ TRANSBONUS_SUCCESS = "```转账成功\n {{from_user}} 给 {{to_user}} 发送了 
 
 
 @app.on_message(filters.reply & filters.regex(r"^\+(\d+)\s*$"))
+@auto_delete_message(60)
 async def transbonus(client: Client, message: Message):
     matches = message.matches
     bonus = int(matches[0].group(1))
@@ -46,6 +48,7 @@ async def transbonus(client: Client, message: Message):
 
 
 @app.on_message(filters.reply & filters.regex(r"^\-(\d+)\s*$"))
+@auto_delete_message(60)
 async def transbonus_(client: Client, message: Message):
     matches = message.matches
     bonus = int(matches[0].group(1))
