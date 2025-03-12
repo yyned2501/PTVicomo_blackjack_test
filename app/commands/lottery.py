@@ -189,7 +189,7 @@ async def bet_lottery(client: Client, message: Message):
                 user = await Users.get_user_from_tgmessage(message)
                 if not user:
                     return await message.reply(USER_BIND_NONE)
-                if user.user.seedbonus < bonus:
+                if user.seedbonus < bonus:
                     return await message.reply(NOT_ENOUGH_BONUS)
                 await user.addbonus(-bonus, f"彩票下注{lottery_numbers}")
                 tg_id = str(user.bot_bind.telegram_account_id)
