@@ -151,10 +151,11 @@ class Deck:
         return ret_str + f"你{self.player_hand_value()}点：{player_hand}"
 
     def calculate_result(self):
-        while self.dealer_hand_value() < 17:
-            self.dealer_draw()
-        dealer_value = self.dealer_hand_value()
         player_value = self.player_hand_value()
+        if player_value <= 21:
+            while self.dealer_hand_value() < 17:
+                self.dealer_draw()
+        dealer_value = self.dealer_hand_value()
         if player_value == dealer_value:
             if player_value == 21:
                 if len(self.player_hand) == 2 and len(self.dealer_hand) == 2:
