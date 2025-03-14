@@ -549,7 +549,15 @@ async def blackjackinfoall(client: Client, message: Message):
 @auto_delete_message()
 async def setblackjackmax(client: Client, message: Message):
     global MAX_BONUS
-    bonus = int(message.command[1])
+    try:
+        bonus = int(message.command[1])
+    except Exception as e:
+        reply_message = await message.reply(
+            f"请输入正确的命令\n格式：/setblackjackmax <最大象草数量> \n例如：`/setblackjackmax {MAX_BONUS}`"
+        )
+        s_delete_message(message, 60)
+        s_delete_message(reply_message, 60)
+        return
     async with ASSession() as session:
         async with session.begin():
             user = await Users.get_user_from_tgmessage(message)
@@ -565,3 +573,4 @@ async def checkblackjack(client: Client, message: Message):
     from app.schedulers.check_redis import blackjack_message
 
     await blackjack_message()
+    return await message.reply("清理完成")
