@@ -448,7 +448,7 @@ class BlackJackHistory(Base):
     __tablename__ = "custom_blackjack_history"
     user_id: Mapped[int] = mapped_column(BigInteger)
     result: Mapped[str] = mapped_column(String(5))
-    bonus: Mapped[int] = mapped_column(Integer)
-    win_bonus: Mapped[int] = mapped_column(Integer)
-    tax: Mapped[int] = mapped_column(Integer, nullable=True)
+    bonus: Mapped[int] = mapped_column(BigInteger)
+    win_bonus: Mapped[int] = mapped_column(BigInteger)
+    tax: Mapped[int] = mapped_column(BigInteger, nullable=True)
     create_time: Mapped[datetime.datetime] = mapped_column(DateTime, default=func.now())
