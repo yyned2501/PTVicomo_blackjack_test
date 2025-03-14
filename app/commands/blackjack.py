@@ -545,9 +545,7 @@ async def blackjackinfoall(client: Client, message: Message):
     )
 
 
-@Client.on_message(
-    (filters.chat(GROUP_ID) | filters.private) & filters.command("setblackjackmax")
-)
+@Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("setblackjackmax"))
 @auto_delete_message()
 async def setblackjackmax(client: Client, message: Message):
     global MAX_BONUS
@@ -561,9 +559,7 @@ async def setblackjackmax(client: Client, message: Message):
             return await message.reply(f"开局上限已修改为{MAX_BONUS}")
 
 
-@Client.on_message(
-    (filters.chat(GROUP_ID) | filters.private) & filters.command("checkblackjack")
-)
+@Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("checkblackjack"))
 @auto_delete_message()
 async def checkblackjack(client: Client, message: Message):
     from app.schedulers.check_redis import blackjack_message

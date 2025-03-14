@@ -70,6 +70,14 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
         BotCommand("blackjackinfo", "21点收益情况"),
         [CommandScope.PRIVATE_CHATS, CommandScope.GROUP_CHAT],
     ),
+    (
+        BotCommand("setblackjackmax", "设置21点最大下注金额"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("checkblackjack", "清理21点开局失败记录"),
+        [CommandScope.ADMIN_CHAT],
+    ),
     (BotCommand("blackjackinfoall", "全部玩家21点收益情况"), [CommandScope.GROUP_CHAT]),
     (
         BotCommand("water", "水群排行榜"),
