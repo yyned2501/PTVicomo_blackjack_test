@@ -152,7 +152,7 @@ class Deck:
 
     def calculate_result(self):
         player_value = self.player_hand_value()
-        if player_value <= 21:
+        if player_value < 21 or (player_value == 21 and len(self.player_hand) > 2):
             while self.dealer_hand_value() < 17:
                 self.dealer_draw()
         dealer_value = self.dealer_hand_value()
