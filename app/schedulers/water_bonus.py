@@ -42,7 +42,7 @@ async def day_water_bonus():
                     ret += f"(第一名额外奖励 {bonus} 象草)"
                     bonus += bonus
                     first = False
-                user.addbonus(bonus, "每日水群奖励")
+                await user.addbonus(bonus, "每日水群奖励")
             await app.send_message(GROUP_ID[0], ret)
             await session.execute(update(TgMessages).values(day_count=0))
 
@@ -66,7 +66,7 @@ async def month_water_bonus():
                 if tgmess.month_count > 450:
                     bonus = (tgmess.month_count - 450) * 400 + 100000
                     ret += f"\n{tgmess.tg_name} 水群 {tgmess.month_count} 条，奖励 {bonus} 象草"
-                    user.addbonus(bonus, "气氛组每月工资")
+                    await user.addbonus(bonus, "气氛组每月工资")
                 else:
                     ret += f"\n{tgmess.tg_name} 水群 {tgmess.month_count} 条，没有达标"
             await app.send_message(GROUP_ID[1], ret)
