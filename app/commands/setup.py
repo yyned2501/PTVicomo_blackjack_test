@@ -17,11 +17,15 @@ ADMINS: dict[str, pyrogram.types.User] = {}
 
 async def get_admin():
     app = get_app()
-    async for m in app.get_chat_members(
-        GROUP_ID[0], filter=pyrogram.enums.ChatMembersFilter.ADMINISTRATORS
-    ):
-        if m.custom_title:
-            ADMINS[m.custom_title] = m.user
+    try:
+        async for m in app.get_chat_members(
+            GROUP_ID[0], filter=pyrogram.enums.ChatMembersFilter.ADMINISTRATORS
+        ):
+            if m.custom_title:
+                ADMINS[m.custom_title] = m.user
+    except Exception as e:
+        logger.error(f"获取管理员失败: {e}")
+        return False
 
 
 class CommandScope(Enum):
