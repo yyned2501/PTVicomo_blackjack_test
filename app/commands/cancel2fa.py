@@ -1,4 +1,3 @@
-from app import app
 from pyrogram import filters, Client
 from pyrogram.types.messages_and_media import Message
 from app.libs.decorators import auto_delete_message
@@ -11,7 +10,7 @@ NON_CANCEL2FA = "您还没有启用两步验证"
 UNBINDED = "您还没有绑定账号"
 
 
-@app.on_message(filters.command("cancel2fa"))
+@Client.on_message(filters.command("cancel2fa"))
 @auto_delete_message()
 async def cancel2fa(client: Client, message: Message):
     async with ASSession() as session:

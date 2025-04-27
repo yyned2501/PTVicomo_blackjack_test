@@ -6,7 +6,6 @@ from pyrogram.types import (
 )
 from pyrogram.types.messages_and_media import Message
 
-from app import app
 from app.libs.decorators import auto_delete_message
 from app.models import ASSession
 from app.models.nexusphp import Users
@@ -21,7 +20,7 @@ UNBIND_SUCCESS = "解绑成功"
 UNBINDED = "您还没有绑定账号"
 
 
-@app.on_message(filters.private & filters.command("bind"))
+@Client.on_message(filters.private & filters.command("bind"))
 @auto_delete_message(delete_from_message_immediately=True)
 async def secret_bind(client: Client, message: Message):
     if len(message.command) == 1:
@@ -37,7 +36,7 @@ async def secret_bind(client: Client, message: Message):
             return await message.reply(BIND_FAIL)
 
 
-@app.on_message(filters.command("bind"))
+@Client.on_message(filters.command("bind"))
 @auto_delete_message()
 async def group_bind(client: Client, message: Message):
     await message.delete()
@@ -56,7 +55,7 @@ async def group_bind(client: Client, message: Message):
     )
 
 
-@app.on_message(filters.command("unbind"))
+@Client.on_message(filters.command("unbind"))
 @auto_delete_message()
 async def unbind(client: Client, message: Message):
     async with ASSession() as session:

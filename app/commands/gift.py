@@ -4,14 +4,13 @@ import random
 
 from sqlalchemy import select
 
-from app import app
 from app.libs.decorators import auto_delete_message
 from app.models import ASSession
 from app.models.nexusphp import BotBinds, TgMessages, UserRoles, Users
 from config import GROUP_ID, GIFT_RATE
 
 
-@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("water"))
+@Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("water"))
 @auto_delete_message()
 async def qfz_water(client: Client, message: Message):
     async with ASSession() as session:
@@ -38,7 +37,7 @@ async def qfz_water(client: Client, message: Message):
             return await message.reply(ret)
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("water"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("water"))
 @auto_delete_message()
 async def water(client: Client, message: Message):
     async with ASSession() as session:
@@ -61,7 +60,7 @@ async def water(client: Client, message: Message):
             return await message.reply(ret)
 
 
-@app.on_message(filters.chat(GROUP_ID) & ~filters.bot, group=1)
+@Client.on_message(filters.chat(GROUP_ID) & ~filters.bot, group=1)
 @auto_delete_message(delete_from_message=False)
 async def bonus(client: Client, message: Message):
     if message.content.startswith(("/", "+")):

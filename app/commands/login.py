@@ -1,5 +1,4 @@
 from sqlalchemy import select
-from app import app
 from pyrogram import filters, Client
 from pyrogram.types.messages_and_media import Message
 from app.libs.decorators import auto_delete_message
@@ -28,7 +27,7 @@ async def get_setting(name: str, session: AsyncSession) -> str:
         return setting.value
 
 
-@app.on_message(filters.private & filters.command("login"))
+@Client.on_message(filters.private & filters.command("login"))
 @auto_delete_message()
 async def secret_login(client: Client, message: Message):
     async with ASSession() as session:
@@ -45,7 +44,7 @@ async def secret_login(client: Client, message: Message):
                 )
 
 
-@app.on_message(filters.command("login"))
+@Client.on_message(filters.command("login"))
 @auto_delete_message()
 async def group_login(client: Client, message: Message):
     name = (await client.get_me()).username

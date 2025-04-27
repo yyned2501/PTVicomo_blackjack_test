@@ -6,7 +6,7 @@ import random
 import time
 
 from sqlalchemy import column, desc, func, select
-from app import app, redis_cli, scheduler
+from app import redis_cli, scheduler, get_app
 from pyrogram import filters, Client
 from pyrogram.types.messages_and_media import Message
 from app.libs.decorators import auto_delete_message, s_delete_message
@@ -138,7 +138,7 @@ async def current_lottery_filter(_, __, message: Message):
 current_lottery = filters.create(current_lottery_filter)
 
 
-@app.on_message(filters.chat(GROUP_ID[0]) & filters.command("lottery"))
+@Client.on_message(filters.chat(GROUP_ID[0]) & filters.command("lottery"))
 @auto_delete_message(60, True, True)
 async def lottery(client: Client, message: Message):
     async with lock:
@@ -167,7 +167,7 @@ async def lottery(client: Client, message: Message):
         return ret_message
 
 
-@app.on_message(
+@Client.on_message(
     filters.chat(GROUP_ID[0])
     & current_lottery
     & filters.regex(r"(\d{3})\s*\*\s*([\d,]+)")
@@ -281,10 +281,13 @@ async def draw_lottery():
                     user = await session.get(Users, data["users"][tgid]["userid"])
                     await user.addbonus(win_bonus_sum, f"彩票开奖 {number_str} 中奖")
             redis_cli.delete("lottery")
+        app = get_app()
         s_delete_message(await app.send_message(GROUP_ID[0], ret), 120)
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.reply & filters.command("lotteryinfo"))
+@Client.on_message(
+    filters.chat(GROUP_ID) & filters.reply & filters.command("lotteryinfo")
+)
 @auto_delete_message(60)
 async def lotteryinfo(client: Client, message: Message):
     async with ASSession() as session:
@@ -296,7 +299,7 @@ async def lotteryinfo(client: Client, message: Message):
             )
 
 
-@app.on_message(filters.private & filters.command("fakelottery"))
+@Client.on_message(filters.private & filters.command("fakelottery"))
 @auto_delete_message(60)
 async def lotteryinfo(client: Client, message: Message):
     async with ASSession() as session:
@@ -308,7 +311,7 @@ async def lotteryinfo(client: Client, message: Message):
                 await message.reply("修改成功")
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("lotteryhistory"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("lotteryhistory"))
 @auto_delete_message(60)
 async def lotteryinfo(client: Client, message: Message):
     async with ASSession() as session:
@@ -329,7 +332,7 @@ async def lotteryinfo(client: Client, message: Message):
             return await message.reply(ret)
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("lotteryinfo"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("lotteryinfo"))
 @auto_delete_message(60)
 async def lotteryinfo(client: Client, message: Message):
     async with ASSession() as session:
@@ -341,7 +344,7 @@ async def lotteryinfo(client: Client, message: Message):
             )
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("lotteryinfoall"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("lotteryinfoall"))
 @auto_delete_message(60)
 async def lotteryinfoall(client: Client, message: Message):
     bet, win, tax = await get_lottery_pool()
@@ -350,7 +353,7 @@ async def lotteryinfoall(client: Client, message: Message):
     )
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("lotteryrank"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("lotteryrank"))
 @auto_delete_message(60)
 async def lotteryrank(client: Client, message: Message):
     session = ASSession()

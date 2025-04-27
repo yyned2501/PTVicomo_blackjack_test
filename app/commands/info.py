@@ -1,4 +1,3 @@
-from app import app
 from pyrogram import filters, Client
 from jinja2 import Template
 from pyrogram.types.messages_and_media import Message
@@ -23,7 +22,7 @@ UID: {{user.id}}
 魔力值：{{user.seedbonus}}"""
 
 
-@app.on_message(filters.private & filters.command("info"))
+@Client.on_message(filters.private & filters.command("info"))
 @auto_delete_message()
 async def secret_info(client: Client, message: Message):
     async with ASSession() as session:
@@ -34,7 +33,7 @@ async def secret_info(client: Client, message: Message):
             return await message.reply(Template(INFO_ALL).render(user=user))
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.reply & filters.command("info"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.reply & filters.command("info"))
 @auto_delete_message(delete_from_message_immediately=True)
 async def group_reply_info(client: Client, message: Message):
     async with ASSession() as session:
@@ -53,7 +52,7 @@ async def group_reply_info(client: Client, message: Message):
                 )
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("info"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("info"))
 @auto_delete_message()
 async def group_info(client: Client, message: Message):
     async with ASSession() as session:
