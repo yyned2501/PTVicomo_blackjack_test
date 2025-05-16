@@ -112,4 +112,8 @@ async def setup_commands():
                 scopes_dict[CommandScope.GROUP_CHAT_ADMIN.name].append(cmd)
             scopes_dict[scope.name].append(cmd)
     for scope, commands in scopes_dict.items():
-        await app.set_bot_commands(commands, scope=CommandScope[scope].value)
+        try:
+            await app.set_bot_commands(commands, scope=CommandScope[scope].value)
+        except Exception as e:
+            logger.error(f"设置命令失败: {e}")
+        
