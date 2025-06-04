@@ -98,15 +98,3 @@ async def hint_remove(client: Client, message: Message):
     return await message.reply(f"已移除关键词：{keyword}")
 
 
-@Client.on_message(
-    filters.chat(GROUP_ID)
-    & filters.regex("|".join([f"({k})" for k in Hint.hint.keys()]))
-)
-@auto_delete_message(60,delete_from_message=False)
-async def auto_reply(client: Client, message: Message):
-    """
-    监听普通群组消息，检测是否包含关键词，自动回复对应内容。
-    """
-    for keyword, reply in Hint.hint.items():
-        if keyword in message.text:
-            return await message.reply(reply)
