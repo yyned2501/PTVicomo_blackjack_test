@@ -31,6 +31,7 @@ async def start_app():
     from app import schedulers
     from app import models
     from app.commands import setup
+    from app.commands.auto_reply import Hint
 
     global app
     app = Client(
@@ -48,6 +49,7 @@ async def start_app():
     await setup.get_admin()
     logger.info("设置命令")
     await setup.setup_commands()
+    await Hint.load_from_redis()
     scheduler.start()
     logger.info("监听主程序")
     await idle()

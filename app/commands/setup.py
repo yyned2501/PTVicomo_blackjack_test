@@ -93,6 +93,18 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
     (BotCommand("cancel2fa", "取消两步验证"), [CommandScope.PRIVATE_CHATS]),
     (BotCommand("ban", "禁言用户"), [CommandScope.GROUP_CHAT_ADMIN]),
     (BotCommand("unban", "取消禁言"), [CommandScope.GROUP_CHAT_ADMIN]),
+    (
+        BotCommand("hint_set", "设置自动回复关键词"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("hint_remove", "移除自动回复关键词"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("hint_list", "查询自动回复关键词"),
+        [CommandScope.ADMIN_CHAT],
+    ),
 ]
 
 
@@ -116,4 +128,4 @@ async def setup_commands():
             await app.set_bot_commands(commands, scope=CommandScope[scope].value)
         except Exception as e:
             logger.error(f"设置命令失败: {e}")
-        
+
