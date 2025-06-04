@@ -10,6 +10,7 @@ class Hint:
     """
     自动回复关键词管理类，负责关键词的存储、加载和移除。
     """
+
     hint = {}
 
     @classmethod
@@ -59,7 +60,7 @@ async def hint_set(client: Client, message: Message):
     args = message.text.split(maxsplit=2)
     if len(args) < 3:
         return await message.reply("用法: /hint_set 关键词 回复内容")
-        
+
     keyword, reply_message = args[1], args[2]
     Hint.save_to_redis(keyword, reply_message)
     return await message.reply(f"已设置关键词：{keyword}")
@@ -73,7 +74,7 @@ async def hint_list(client: Client, message: Message):
     """
     if not Hint.hint:
         return await message.reply("暂无关键词。")
-        
+
     text = "关键词列表：\n"
     for keyword, reply in Hint.hint.items():
         text += f"- {keyword}：{reply}\n"
@@ -84,6 +85,7 @@ async def hint_list(client: Client, message: Message):
     filters.chat(GROUP_ID[0])
     & filters.regex("|".join([f"({k})" for k in Hint.hint.keys()]))
 )
+@auto_delete_message(60)
 async def auto_reply(client: Client, message: Message):
     """
     监听普通群组消息，检测是否包含关键词，自动回复对应内容。
