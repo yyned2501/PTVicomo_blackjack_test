@@ -58,11 +58,11 @@ async def hint_set(client: Client, message: Message):
     """
     args = message.text.split(maxsplit=2)
     if len(args) < 3:
-        await message.reply("用法: /hint_set 关键词 回复内容")
-        return
+        return await message.reply("用法: /hint_set 关键词 回复内容")
+        
     keyword, reply_message = args[1], args[2]
     Hint.save_to_redis(keyword, reply_message)
-    await message.reply(f"已设置关键词：{keyword}")
+    return await message.reply(f"已设置关键词：{keyword}")
 
 
 @Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("hint_list"))
@@ -72,12 +72,12 @@ async def hint_list(client: Client, message: Message):
     查询所有自动回复关键词及内容。仅限管理员群组使用。
     """
     if not Hint.hint:
-        await message.reply("暂无关键词。")
-        return
+        return await message.reply("暂无关键词。")
+        
     text = "关键词列表：\n"
     for keyword, reply in Hint.hint.items():
         text += f"- {keyword}：{reply}\n"
-    await message.reply(text)
+    return await message.reply(text)
 
 
 @Client.on_message(
@@ -90,8 +90,7 @@ async def auto_reply(client: Client, message: Message):
     """
     for keyword, reply in Hint.hint.items():
         if keyword in message.text:
-            await message.reply(reply)
-            break
+            return await message.reply(reply)
 
 
 @Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("hint_remove"))
@@ -103,11 +102,9 @@ async def hint_remove(client: Client, message: Message):
     """
     args = message.text.split(maxsplit=1)
     if len(args) < 2:
-        await message.reply("用法: /hint_remove 关键词")
-        return
+        return await message.reply("用法: /hint_remove 关键词")
     keyword = args[1]
     if keyword not in Hint.hint:
-        await message.reply("关键词不存在。")
-        return
+        return await message.reply("关键词不存在。")
     Hint.remove_from_redis(keyword)
-    await message.reply(f"已移除关键词：{keyword}")
+    return await message.reply(f"已移除关键词：{keyword}")
