@@ -30,9 +30,12 @@ class Hint:
         从redis加载所有关键词及其回复内容到内存字典。
         """
         keywords = redis_cli.smembers("hint:keywords")
+        logger.info(f"加载关键词: {keywords}")
         for keyword in keywords:
+            logger.info(f"从redis加载关键词: {keyword}")
             reply = redis_cli.get(f"hint:{keyword}")
             if reply:
+                logger.info(f"关键词: {keyword}，回复内容: {reply.decode('utf-8')}")
                 cls.hint[keyword] = reply
 
     @classmethod
