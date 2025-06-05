@@ -1,7 +1,7 @@
 from pyrogram import filters, Client
 from pyrogram.types import Message
 
-from app import redis_cli
+from app import redis_cli, logger
 from app.libs.decorators import auto_delete_message
 from config import GROUP_ID
 
@@ -98,3 +98,18 @@ async def hint_remove(client: Client, message: Message):
     return await message.reply(f"已移除关键词：{keyword}")
 
 
+@Client.on_message(
+    filters.chat(GROUP_ID)
+    & filters.create(lambda _: len(Hint.hint) > 0)
+    & filters.regex("|".join([f"{k}" for k in Hint.hint.keys()]))
+)
+@auto_delete_message(60)
+async def auto_reply(client: Client, message: Message):
+    """
+    监听普通群组消息，检测是否包含关键词，自动回复对应内容。
+    """
+    logger.info(f"监听到内容: {message.text}，检测关键词...")
+    for keyword, reply in Hint.hint.items():
+        if keyword in message.text:
+            logger.info(f"检测到关键词: {keyword}，回复内容: {reply}")
+            return await message.reply(reply)
