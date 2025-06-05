@@ -21,7 +21,6 @@ class Hint:
         :param reply_message: 回复内容
         """
         redis_cli.set(f"hint:{keyword}", reply_message)
-        redis_cli.sadd("hint:keywords", keyword)
         cls.hint[keyword] = reply_message
 
     @classmethod
@@ -29,8 +28,7 @@ class Hint:
         """
         从redis加载所有关键词及其回复内容到内存字典。
         """
-        keywords = redis_cli.smembers("hint:keywords")
-        logger.info(f"加载关键词: {keywords}")
+        keywords = redis_cli.keys("hint*")
         for keyword in keywords:
             logger.info(f"从redis加载关键词: {keyword}")
             reply = redis_cli.get(f"hint:{keyword}")
@@ -44,8 +42,10 @@ class Hint:
         从redis和内存字典中移除指定关键词。
         :param keyword: 关键词
         """
+        if keyword not in cls.hint:
+            logger.warning(f"尝试移除不存在的关键词: {keyword}")
+            return
         redis_cli.delete(f"hint:{keyword}")
-        redis_cli.srem("hint:keywords", keyword)
         cls.hint.pop(keyword, None)
 
 
