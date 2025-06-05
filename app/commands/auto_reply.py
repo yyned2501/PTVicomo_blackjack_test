@@ -34,7 +34,7 @@ class Hint:
             reply = redis_cli.get(keyword)
             if reply:
                 logger.info(f"关键词: {keyword}，回复内容: {reply}")
-                cls.hint[keyword] = reply.encode("utf-8")
+                cls.hint[keyword] = reply.decode("utf-8")
             else:
                 redis_cli.delete(keyword)
 
