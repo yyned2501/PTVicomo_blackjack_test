@@ -30,11 +30,11 @@ class Hint:
         """
         keywords = redis_cli.keys("hint*")
         for keyword in keywords:
-            keyword = keyword.decode("utf-8")
+            keyword = str(keyword).encode("utf-8")
             logger.info(f"从redis加载关键词: {keyword}")
             reply = redis_cli.get(keyword)
             if reply:
-                logger.info(f"关键词: {keyword}，回复内容: {reply.decode('utf-8')}")
+                logger.info(f"关键词: {keyword}，回复内容: {reply.encode('utf-8')}")
                 cls.hint[keyword] = reply
 
     @classmethod
