@@ -30,13 +30,14 @@ class Hint:
         """
         keywords = redis_cli.keys("hint*")
         for keyword in keywords:
+            keyword = keyword.decode("utf-8").split(":")[1]  # 提取关键词
             logger.info(f"从redis加载关键词: {keyword}")
-            reply = redis_cli.get(keyword)
+            reply = redis_cli.get(f"int:{keyword}")
             if reply:
                 logger.info(f"关键词: {keyword}，回复内容: {reply}")
                 cls.hint[keyword] = reply.decode("utf-8")
             else:
-                redis_cli.delete(keyword)
+                redis_cli.delete(f"int:{keyword}")
 
     @classmethod
     def remove_from_redis(cls, keyword):
