@@ -32,9 +32,9 @@ class Hint:
         for keyword in keywords:
             keyword = str(keyword).encode("utf-8")
             logger.info(f"从redis加载关键词: {keyword}")
-            reply = redis_cli.get(keyword)
+            reply = str(redis_cli.get(keyword)).encode("utf-8")
             if reply:
-                logger.info(f"关键词: {keyword}，回复内容: {reply.encode('utf-8')}")
+                logger.info(f"关键词: {keyword}，回复内容: {reply}")
                 cls.hint[keyword] = reply
 
     @classmethod
