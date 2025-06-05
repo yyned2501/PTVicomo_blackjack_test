@@ -30,7 +30,7 @@ class Hint:
         """
         keywords = redis_cli.keys("hint*")
         for keyword in keywords:
-            # keyword = str(keyword)
+            keyword = str(keyword)
             logger.info(f"从redis加载关键词: {keyword}")
             reply = redis_cli.get(keyword)
             if reply:
