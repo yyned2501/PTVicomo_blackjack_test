@@ -100,7 +100,7 @@ async def hint_remove(client: Client, message: Message):
 
 @Client.on_message(
     filters.chat(GROUP_ID)
-    & filters.create(lambda _: len(Hint.hint) > 0)
+    & filters.create(lambda _, __, ___: len(Hint.hint) > 0)
     & filters.regex("|".join([f"{k}" for k in Hint.hint.keys()]))
 )
 @auto_delete_message(60)
