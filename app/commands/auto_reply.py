@@ -110,7 +110,7 @@ async def hint_remove(client: Client, message: Message):
     & filters.create(lambda _, __, ___: len(Hint.hint) > 0)
     & filters.regex("|".join([f"{k}" for k in Hint.hint.keys()]))
 )
-@auto_delete_message(60)
+@auto_delete_message(60, delete_from_message=False)
 async def auto_reply(client: Client, message: Message):
     """
     监听普通群组消息，检测是否包含关键词，自动回复对应内容。
