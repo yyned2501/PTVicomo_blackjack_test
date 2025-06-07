@@ -9,6 +9,7 @@ from pyrogram.types.messages_and_media import Message
 from app.libs.decorators import auto_delete_message
 from app.models import ASSession
 from app.models.nexusphp import Users
+from config import GROUP_ID
 
 
 BIND_REQUIRE = "请输入`/bind passkey`绑定账号"
@@ -53,7 +54,32 @@ async def group_bind(client: Client, message: Message):
             ]
         ),
     )
-
+@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("bindid"))
+@auto_delete_message()
+async def bind_id(client: Client, message: Message):
+    if len(message.command) == 1:
+        return await message.reply(BIND_REQUIRE)
+    try:
+        userid = message.command[1]
+        tg_id = message.command[2]
+    except:
+        return await message.reply("格式有误 /bindid userid tgid")
+    async with ASSession() as session:
+        async with session.begin():
+            user = (
+                await session.execute(select(Users).filter(Users.id == userid))
+            ).scalar_one_or_none()
+            if user.bot_bind:
+                user.bot_bind.uid = user.id
+                user.bot_bind.telegram_account_id = tg_id
+                user.bot_bind.telegram_account_username = tg_name
+            else:
+                user.bot_bind = BotBinds(
+                    uid=user.id,
+                    telegram_account_id=tg_id,
+                    telegram_account_username=tg_name,
+                )
+                session.add(user.bot_bind)
 
 @Client.on_message(filters.command("unbind"))
 @auto_delete_message()
