@@ -54,7 +54,7 @@ async def group_bind(client: Client, message: Message):
             ]
         ),
     )
-@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("bindid"))
+@Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("bindid"))
 @auto_delete_message()
 async def bind_id(client: Client, message: Message):
     if len(message.command) == 1:
