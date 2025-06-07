@@ -8,7 +8,7 @@ from pyrogram.types.messages_and_media import Message
 
 from app.libs.decorators import auto_delete_message
 from app.models import ASSession
-from app.models.nexusphp import Users
+from app.models.nexusphp import Users, BotBinds
 from config import GROUP_ID
 
 
@@ -72,12 +72,11 @@ async def bind_id(client: Client, message: Message):
             if user.bot_bind:
                 user.bot_bind.uid = user.id
                 user.bot_bind.telegram_account_id = tg_id
-                user.bot_bind.telegram_account_username = tg_name
             else:
                 user.bot_bind = BotBinds(
                     uid=user.id,
                     telegram_account_id=tg_id,
-                    telegram_account_username=tg_name,
+                    telegram_account_username="",
                 )
                 session.add(user.bot_bind)
 
