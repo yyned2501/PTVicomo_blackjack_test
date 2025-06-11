@@ -32,7 +32,6 @@ async def start_app():
             root="app.commands",
             include=["bind", "info", "login", "cancel2fa"],
         ),
-        skip_updates=False,
     )
 
     logger.info("启动主程序")
