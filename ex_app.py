@@ -13,6 +13,7 @@ from pyrogram import Client, idle
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from app import get_app
 from app.libs.logs import logger
 from config import API_ID, API_HASH, BOT_TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
 
@@ -29,8 +30,6 @@ scheduler = AsyncIOScheduler(
     }
 )
 
-app: Client = None
-
 
 redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
@@ -41,7 +40,7 @@ async def start_app():
     from app.commands import setup
     from app.commands.auto_reply import Hint
 
-    global app
+    app = get_app()
     app = Client(
         "ex_tgbot",
         api_id=API_ID,
@@ -57,16 +56,14 @@ async def start_app():
     await app.start()
     await models.create_all()
     await setup.get_admin()
+    logger.info("设置命令")
+    await setup.setup_commands()
+    Hint.load_from_redis()
     scheduler.start()
     logger.info("监听主程序")
     await idle()
     await app.stop()
     logger.info("关闭主程序")
-
-
-def get_app():
-    global app
-    return app
 
 
 if __name__ == "__main__":

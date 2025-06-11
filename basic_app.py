@@ -11,16 +11,12 @@ import os
 import redis
 from pyrogram import Client, idle
 
-
+from app import get_app
 from app.libs.logs import logger
 from config import API_ID, API_HASH, BOT_TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
 
 
 os.environ["TZ"] = "Asia/Shanghai"
-
-
-app: Client = None
-
 
 redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
@@ -29,7 +25,7 @@ async def start_app():
     from app import models
     from app.commands import setup
 
-    global app
+    app = get_app()
     app = Client(
         "basic_tgbot",
         api_id=API_ID,
@@ -49,11 +45,6 @@ async def start_app():
     await idle()
     await app.stop()
     logger.info("关闭主程序")
-
-
-def get_app():
-    global app
-    return app
 
 
 if __name__ == "__main__":
