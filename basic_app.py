@@ -6,19 +6,11 @@ if sys.platform != "win32":
     uvloop.install()
 
 import asyncio
-import os
-
-import redis
 from pyrogram import Client, idle
 
 from app import get_app
 from app.libs.logs import logger
-from config import API_ID, API_HASH, BOT_TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
-
-
-os.environ["TZ"] = "Asia/Shanghai"
-
-redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+from config import API_ID, API_HASH, BOT_TOKEN
 
 
 async def start_app():

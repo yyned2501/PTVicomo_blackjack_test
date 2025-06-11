@@ -6,32 +6,13 @@ if sys.platform != "win32":
     uvloop.install()
 
 import asyncio
-import os
-
-import redis
 from pyrogram import Client, idle
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app import get_app
+from app import get_app, scheduler
 from app.libs.logs import logger
-from config import API_ID, API_HASH, BOT_TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
-
-
-os.environ["TZ"] = "Asia/Shanghai"
-
-scheduler = AsyncIOScheduler(
-    {
-        "job_defaults": {
-            "max_instances": 5,  # 全局设置最大并发实例数为 5
-            "coalesce": True,  # 可选：合并跳过的任务
-            "misfire_grace_time": 2,  # 可选：设置宽限时间（秒）
-        }
-    }
-)
-
-
-redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+from config import API_ID, API_HASH, BOT_TOKEN
 
 
 async def start_app():
