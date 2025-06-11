@@ -24,7 +24,7 @@ async def start_app():
 
     global app
     app = Client(
-        "tgbot",
+        "basic_tgbot",
         api_id=API_ID,
         api_hash=API_HASH,
         bot_token=BOT_TOKEN,
