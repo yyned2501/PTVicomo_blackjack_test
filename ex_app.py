@@ -1,3 +1,7 @@
+if sys.platform != "win32":
+    import uvloop
+    uvloop.install()
+    
 import asyncio
 import os
 
@@ -61,5 +65,7 @@ def get_app():
     global app
     return app
 
+
 if __name__ == "__main__":
+
     asyncio.run(start_app())

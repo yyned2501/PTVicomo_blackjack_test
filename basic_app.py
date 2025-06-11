@@ -1,3 +1,7 @@
+if sys.platform != "win32":
+    import uvloop
+    uvloop.install()
+    
 import asyncio
 import os
 
