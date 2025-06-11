@@ -39,8 +39,7 @@ async def start_app():
         api_id=API_ID,
         api_hash=API_HASH,
         bot_token=BOT_TOKEN,
-        plugins=dict(root="app.commands",plugins=[""]),
-        skip_updates=False,
+        plugins=dict(root="app.commands"),
     )
 
     logger.info("启动主程序")
