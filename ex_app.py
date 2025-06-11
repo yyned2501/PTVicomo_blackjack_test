@@ -10,7 +10,7 @@ from pyrogram import Client, idle
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from app import get_app, scheduler
+from app import app, get_app, scheduler
 from app.libs.logs import logger
 from config import API_ID, API_HASH, BOT_TOKEN
 
@@ -21,7 +21,7 @@ async def start_app():
     from app.commands import setup
     from app.commands.auto_reply import Hint
 
-    app = get_app()
+    global app
     app = Client(
         "ex_tgbot",
         api_id=API_ID,

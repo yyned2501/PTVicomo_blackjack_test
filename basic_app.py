@@ -8,7 +8,7 @@ if sys.platform != "win32":
 import asyncio
 from pyrogram import Client, idle
 
-from app import get_app
+from app import app
 from app.libs.logs import logger
 from config import API_ID, API_HASH, BOT_TOKEN
 
@@ -17,7 +17,7 @@ async def start_app():
     from app import models
     from app.commands import setup
 
-    app = get_app()
+    global app
     app = Client(
         "basic_tgbot",
         api_id=API_ID,
