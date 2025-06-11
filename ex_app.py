@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import redis
@@ -39,7 +40,10 @@ async def start_app():
         api_id=API_ID,
         api_hash=API_HASH,
         bot_token=BOT_TOKEN,
-        plugins=dict(root="app.commands",plugins=[""]),
+        plugins=dict(
+            root="app.commands",
+            exclude=["bind", "info", "login", "cancel2fa"],
+        ),
         skip_updates=False,
     )
 
@@ -47,9 +51,6 @@ async def start_app():
     await app.start()
     await models.create_all()
     await setup.get_admin()
-    logger.info("设置命令")
-    await setup.setup_commands()
-    Hint.load_from_redis()
     scheduler.start()
     logger.info("监听主程序")
     await idle()
@@ -60,3 +61,6 @@ async def start_app():
 def get_app():
     global app
     return app
+
+if __name__ == "__main__":
+    asyncio.run(start_app())
