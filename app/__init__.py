@@ -90,7 +90,6 @@ async def start_ex_app():
     await setup.get_admin()
     logger.info("设置命令")
     await setup.setup_commands()
-    Hint.load_from_redis()
     scheduler.start()
     logger.info("监听主程序")
     await idle()
