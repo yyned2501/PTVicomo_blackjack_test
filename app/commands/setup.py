@@ -105,6 +105,18 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
         BotCommand("hint_list", "查询自动回复关键词"),
         [CommandScope.ADMIN_CHAT],
     ),
+    (
+        BotCommand("restart_extra", "重启 ex_app 程序"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("restart_basic", "重启 basic_app 程序"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("update", "更新代码"),
+        [CommandScope.ADMIN_CHAT],
+    ),
 ]
 
 
@@ -128,4 +140,3 @@ async def setup_commands():
             await app.set_bot_commands(commands, scope=CommandScope[scope].value)
         except Exception as e:
             logger.error(f"设置命令失败: {e}")
-
