@@ -26,6 +26,14 @@ app: Client = None
 
 redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
+basic_plugins = [
+    "bind",
+    "info",
+    "login",
+    "cancel2fa",
+    "auto_reply",
+]
+
 
 def get_app():
     global app
@@ -44,7 +52,7 @@ async def start_basic_app():
         bot_token=BOT_TOKEN,
         plugins=dict(
             root="app.commands",
-            include=["bind", "info", "login", "cancel2fa"],
+            include=basic_plugins,
         ),
     )
 
@@ -72,7 +80,7 @@ async def start_ex_app():
         bot_token=BOT_TOKEN,
         plugins=dict(
             root="app.commands",
-            exclude=["bind", "info", "login", "cancel2fa"],
+            exclude=basic_plugins,
         ),
     )
 

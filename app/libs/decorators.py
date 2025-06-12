@@ -1,21 +1,15 @@
-import json
-import time
+import asyncio
 from typing import Callable, Coroutine
 from pyrogram.types import Message
-from app import redis_cli, Client
+from app import Client
 
 
-def s_delete_message(message: Message, delay=0):
-    if message and not message.empty:
-        data = {
-            "chatid": message.chat.id,
-            "messageid": message.id,
-            "deletetime": int(time.time()) + delay,
-        }
-        redis_cli.set(
-            f"DM:{message.chat.id}:{message.id}",
-            json.dumps(data),
-        )
+def s_delete_message(message: Message, sleep_time=0):
+    async def delayed_delete(message: Message, sleep_time=0):
+        await asyncio.sleep(sleep_time)
+        await message.delete()
+
+    return asyncio.create_task(delayed_delete(message, sleep_time))
 
 
 def auto_delete_message(
@@ -25,7 +19,7 @@ def auto_delete_message(
         func: Callable[
             [Client, Message],
             Coroutine[None, None, Message | tuple[Message, bool] | None],
-        ]
+        ],
     ):
         async def wrapper(client, message: Message):
             sent_message = await func(client, message)
