@@ -130,11 +130,11 @@ async def luckypocket(client: Client, message: Message):
 @app.on_message(filters.chat(GROUP_ID) & filters.command("listredpocket"))
 @auto_delete_message()
 async def listredpocket(client: Client, message: Message):
+    user = await Users.get_user_from_tgmessage(message)
+    if not user.bot_bind:
+        return await message.reply(USER_BIND_NONE)
+    ret = []
     async with ASSession() as session, session.begin():
-        user = await Users.get_user_from_tgmessage(message)
-        if not user.bot_bind:
-            return await message.reply(USER_BIND_NONE)
-        ret = []
         results = await session.execute(
             select(Redpocket)
             .outerjoin(
