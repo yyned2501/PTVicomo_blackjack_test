@@ -7,6 +7,7 @@ from pyrogram.types import (
     BotCommandScopeChatAdministrators,
 )
 from app import get_app
+from app.models import ASSession
 from config import GROUP_ID
 import logging
 
@@ -140,3 +141,10 @@ async def setup_commands():
             await app.set_bot_commands(commands, scope=CommandScope[scope].value)
         except Exception as e:
             logger.error(f"设置命令失败: {e}")
+
+
+async def init_redpockets():
+    from .redpocket import redpockets
+
+    async with ASSession() as session, session.begin():
+        await redpockets.async_init()

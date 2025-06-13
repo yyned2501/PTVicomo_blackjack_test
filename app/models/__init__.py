@@ -32,7 +32,7 @@ async_connection_string = (
 )
 async_engine = create_async_engine(async_connection_string)
 ASSession = async_scoped_session(
-    async_sessionmaker(bind=async_engine, class_=AsyncSession),
+    async_sessionmaker(bind=async_engine, expire_on_commit=False, class_=AsyncSession),
     asyncio.current_task,
 )
 

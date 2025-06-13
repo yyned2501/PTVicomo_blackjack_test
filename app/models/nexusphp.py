@@ -14,6 +14,7 @@ from sqlalchemy import (
     SmallInteger,
     DateTime,
     Enum,
+    delete,
     func,
     select,
     text,
@@ -116,30 +117,29 @@ class Users(Base):
         return " ".join([role.name for role in self.roles_names])
 
     async def addbonus(self, bonus: float, comment=""):
-        session = ASSession()
-        old = self.seedbonus
-        bonus = round(bonus, 1)
-        new = round(self.seedbonus + bonus, 1)
-        write_comment = f"[TG] {comment} {bonus} 象草"
-        self.seedbonus = text(f"{bonus}+seedbonus")
-        self.bonuscomment = func.concat(
-            f'{datetime.datetime.now().strftime("%Y-%m-%d")} - {write_comment}\n',
-            text("SUBSTRING_INDEX(bonuscomment, '\n', 99)"),
-        )
-        self.bonus_logs.append(
-            BonusLogs(
-                business_type=123,
-                uid=self.id,
-                old_total_value=old,
-                value=abs(bonus),
-                new_total_value=new,
-                comment=write_comment,
-                created_at=datetime.datetime.now(),
-                updated_at=datetime.datetime.now(),
+        async with ASSession() as session, session.begin():
+            old = self.seedbonus
+            bonus = round(bonus, 1)
+            new = round(self.seedbonus + bonus, 1)
+            write_comment = f"[TG] {comment} {bonus} 象草"
+            self.seedbonus = text(f"{bonus}+seedbonus")
+            self.bonuscomment = func.concat(
+                f'{datetime.datetime.now().strftime("%Y-%m-%d")} - {write_comment}\n',
+                text("SUBSTRING_INDEX(bonuscomment, '\n', 99)"),
             )
-        )
-        await session.flush()
-        logger.info(f"{self.id}|{old}|{bonus}|{new}|{comment}")
+            self.bonus_logs.append(
+                BonusLogs(
+                    business_type=123,
+                    uid=self.id,
+                    old_total_value=old,
+                    value=abs(bonus),
+                    new_total_value=new,
+                    comment=write_comment,
+                    created_at=datetime.datetime.now(),
+                    updated_at=datetime.datetime.now(),
+                )
+            )
+            logger.info(f"{self.id}|{old}|{bonus}|{new}|{comment}")
 
     def setvip(self, days=7):
         self._class = 10
@@ -181,8 +181,7 @@ class Users(Base):
 
     @classmethod
     async def bind(cls, passkey: str, message: Message):
-        session = ASSession()
-        async with session.begin():
+        async with ASSession() as session, session.begin():
             user = (
                 await session.execute(select(cls).filter(cls.passkey == passkey))
             ).scalar_one_or_none()
@@ -203,15 +202,13 @@ class Users(Base):
                 return True
 
     async def unbind(self):
-        session = ASSession()
-        async with session.begin():
+        async with ASSession() as session, session.begin():
             if self.bot_bind:
                 await session.delete(self.bot_bind)
 
     @classmethod
     async def get_user_from_tg_id(cls, tg_id: int):
-        session = ASSession()
-        async with session.begin():
+        async with ASSession() as session, session.begin():
             user = (
                 await session.execute(
                     select(cls)
@@ -244,16 +241,14 @@ class Users(Base):
         return tg_name
 
     async def update_tg_name(self, message: Message):
-        session = ASSession()
-        async with session.begin():
+        async with ASSession() as session, session.begin():
             tg_name = self.get_tg_name(message)
             self.bot_bind.telegram_account_username = tg_name
             await session.flush()
 
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
-        session = ASSession()
-        async with session.begin():
+        async with ASSession() as session, session.begin():
             user = await cls.get_user_from_tg_id(message.from_user.id)
             if user:
                 await user.update_tg_name(message)
@@ -323,7 +318,7 @@ class Redpocket(Base):
     )
     tpye_name = ["拼手气红包", "锦鲤红包"]
 
-    def get(self):
+    def _get(self):
         bonus = None
         if self._pocket_type == 0:
             avg_bonus = self.bonus / self.count
@@ -335,7 +330,7 @@ class Redpocket(Base):
         self.count = text(f"count-1")
         return bonus
 
-    def draw(self):
+    def _draw(self):
         n = len(self.claimed)
         lucky_n = random.randint(0, n - 1)
         lucky_user = self.claimed[lucky_n].tg_id
@@ -344,6 +339,23 @@ class Redpocket(Base):
     @property
     def pocket_type(self):
         return self.tpye_name[self._pocket_type]
+
+    async def delete(self):
+        async with ASSession() as session, session.begin():
+            await session.execute(
+                delete(RedpocketClaimed).where(RedpocketClaimed.redpocket_id == self.id)
+            )
+            await session.delete(self)
+
+    @classmethod
+    async def get_pocket(cls, password: str):
+        async with ASSession() as session, session.begin():
+            redpocket = (
+                await session.execute(
+                    select(cls).filter(cls.password == password, cls.count > 0)
+                )
+            ).scalar_one_or_none()
+            return redpocket
 
 
 class RedpocketClaimed(Base):
@@ -384,9 +396,8 @@ class TgMessages(Base):
 
     @classmethod
     async def get_tgmess_from_tgmessage(cls, message: Message):
-        session = ASSession()
-        tg_id = message.from_user.id
-        async with session.begin():
+        async with ASSession() as session, session.begin():
+            tg_id = message.from_user.id
             tgmess = (
                 await session.execute(select(cls).filter(cls.tg_id == tg_id))
             ).scalar_one_or_none()
