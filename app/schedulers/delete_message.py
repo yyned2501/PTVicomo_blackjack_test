@@ -44,4 +44,4 @@ async def delete_message():
 
 
 # 每秒钟执行一次 delete_message 函数
-scheduler.add_job(delete_message, "interval", seconds=2)
+scheduler.add_job(delete_message, "interval", seconds=10)
