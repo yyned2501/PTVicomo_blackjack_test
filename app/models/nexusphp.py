@@ -248,7 +248,8 @@ class Users(Base):
 
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
-        async with ASSession() as session, session.begin():
+        session = ASSession()
+        async with session.begin():
             user = await cls.get_user_from_tg_id(message.from_user.id)
             if user:
                 await user.update_tg_name(message)
