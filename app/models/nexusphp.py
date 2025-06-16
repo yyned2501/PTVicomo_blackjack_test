@@ -318,7 +318,7 @@ class Redpocket(Base):
     )
     tpye_name = ["拼手气红包", "锦鲤红包"]
 
-    def _get(self):
+    def get(self):
         bonus = None
         if self._pocket_type == 0:
             avg_bonus = self.bonus / self.count
@@ -330,7 +330,7 @@ class Redpocket(Base):
         self.count = text(f"count-1")
         return bonus
 
-    def _draw(self):
+    def draw(self):
         n = len(self.claimed)
         lucky_n = random.randint(0, n - 1)
         lucky_user = self.claimed[lucky_n].tg_id
@@ -339,23 +339,6 @@ class Redpocket(Base):
     @property
     def pocket_type(self):
         return self.tpye_name[self._pocket_type]
-
-    async def delete(self):
-        async with ASSession() as session, session.begin():
-            await session.execute(
-                delete(RedpocketClaimed).where(RedpocketClaimed.redpocket_id == self.id)
-            )
-            await session.delete(self)
-
-    @classmethod
-    async def get_pocket(cls, password: str):
-        async with ASSession() as session, session.begin():
-            redpocket = (
-                await session.execute(
-                    select(cls).filter(cls.password == password, cls.count > 0)
-                )
-            ).scalar_one_or_none()
-            return redpocket
 
 
 class RedpocketClaimed(Base):
