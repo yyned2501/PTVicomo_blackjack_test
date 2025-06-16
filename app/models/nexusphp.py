@@ -244,7 +244,6 @@ class Users(Base):
         async with ASSession() as session, session.begin():
             tg_name = self.get_tg_name(message)
             self.bot_bind.telegram_account_username = tg_name
-            await session.flush()
 
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
