@@ -7,6 +7,7 @@ from pyrogram.types import (
     BotCommandScopeChatAdministrators,
 )
 from app import get_app
+from app.models import ASSession
 from config import GROUP_ID
 import logging
 
