@@ -241,13 +241,14 @@ class Users(Base):
         return tg_name
 
     async def update_tg_name(self, message: Message):
-        async with ASSession.begin():
+        session = ASSession()
+        async with session.begin():
             tg_name = self.get_tg_name(message)
             self.bot_bind.telegram_account_username = tg_name
 
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
-        async with ASSession.begin():
+        async with ASSession() as session, session.begin():
             user = await cls.get_user_from_tg_id(message.from_user.id)
             if user:
                 await user.update_tg_name(message)
