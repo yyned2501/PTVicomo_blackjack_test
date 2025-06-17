@@ -6,7 +6,15 @@ from pyrogram import idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.libs.logs import logger
-from config import API_ID, API_HASH, BOT_TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
+from config import (
+    API_ID,
+    API_HASH,
+    BOT_TOKEN,
+    REDIS_HOST,
+    REDIS_PORT,
+    REDIS_DB,
+    GROUP_ID,
+)
 from app.custom_client import Client
 
 os.environ["TZ"] = "Asia/Shanghai"
@@ -60,6 +68,7 @@ async def start_basic_app():
     await models.create_all()
     await setup.get_admin()
     logger.info("监听主程序")
+    await app.send_message(GROUP_ID[1], "basic_app login")
     await idle()
     await app.stop()
     logger.info("关闭主程序")
@@ -91,6 +100,7 @@ async def start_ex_app():
     await setup.setup_commands()
     scheduler.start()
     logger.info("监听主程序")
+    await app.send_message(GROUP_ID[1], "ex_app login")
     await idle()
     await app.stop()
     logger.info("关闭主程序")
