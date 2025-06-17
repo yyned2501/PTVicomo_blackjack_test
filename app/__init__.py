@@ -1,13 +1,13 @@
 import os
 
 import redis
-from pyrogram import Client, idle
+from pyrogram import idle
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.libs.logs import logger
 from config import API_ID, API_HASH, BOT_TOKEN, REDIS_HOST, REDIS_PORT, REDIS_DB
-
+from app.custom_client import Client
 
 os.environ["TZ"] = "Asia/Shanghai"
 
@@ -55,7 +55,6 @@ async def start_basic_app():
             include=basic_plugins,
         ),
     )
-
     logger.info("启动主程序")
     await app.start()
     await models.create_all()

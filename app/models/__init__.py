@@ -28,9 +28,15 @@ def scope_task(loop):
 
 
 async_connection_string = (
-    f"mysql+asyncmy://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}"
+    f"mysql+asyncmy://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}",
 )
-async_engine = create_async_engine(async_connection_string)
+async_engine = create_async_engine(
+    async_connection_string,
+    pool_size=10,
+    max_overflow=20,
+    pool_timeout=30,
+    pool_recycle=3600,
+)
 ASSession = async_scoped_session(
     async_sessionmaker(bind=async_engine, expire_on_commit=False, class_=AsyncSession),
     asyncio.current_task,
