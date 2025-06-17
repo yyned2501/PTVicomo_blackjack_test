@@ -1,8 +1,10 @@
-from pyrogram import Client, filters
+import sys
+from pyrogram import filters
 from pyrogram.types import Message
 import subprocess
 
 from config import GROUP_ID, API_ID, API_HASH, BOT_TOKEN
+from app.custom_client import Client
 
 app = Client(
     "su_tgbot",
@@ -72,6 +74,14 @@ async def restart_extra(client: Client, message: Message):
         return await message.reply("ex_app 重启成功！\n" + output)
     else:
         return await message.reply("ex_app 重启失败！\n" + output)
+
+
+@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("restart_all"))
+async def restart_all(client: Client, message: Message):
+    """
+    利用supervisor的重启机制类重启
+    """
+    return sys.exit(1)
 
 
 @app.on_message(filters.chat(GROUP_ID[1]) & filters.command("update"))
