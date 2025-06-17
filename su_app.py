@@ -14,7 +14,7 @@ app = Client(
 )
 
 
-def restart_program(program_name):
+def send_command(commands):
     """
     使用 supervisorctl 重启指定的程序
     :param program_name: supervisor 配置中的程序名
@@ -22,7 +22,7 @@ def restart_program(program_name):
     """
     try:
         result = subprocess.run(
-            ["supervisorctl", "restart", program_name],
+            commands,
             capture_output=True,
             text=True,
             timeout=10,
@@ -33,6 +33,15 @@ def restart_program(program_name):
             return False, result.stderr.strip() or result.stdout.strip()
     except Exception as e:
         return False, str(e)
+
+
+def restart_program(program_name):
+    """
+    使用 supervisorctl 重启指定的程序
+    :param program_name: supervisor 配置中的程序名
+    :return: (success, output)
+    """
+    return send_command(["supervisorctl", "restart", program_name])
 
 
 def git_pull():
@@ -81,7 +90,7 @@ async def restart_all(client: Client, message: Message):
     """
     利用supervisor的重启机制类重启
     """
-    return sys.exit(1)
+    return send_command(["supervisorctl", "reload"])
 
 
 @app.on_message(filters.chat(GROUP_ID[1]) & filters.command("update"))
