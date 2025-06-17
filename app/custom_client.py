@@ -17,11 +17,11 @@ logger = logging.getLogger("main")
 
 
 class Client(_Client):
-    async def start(self):
+    async def start(self, *args, **kargs):
         """
         重写 start 方法，在会话认证后设置 CustomSession。
         """
-        await super().start()
+        await super().start(*args, **kargs)
         # 确保 auth_key 和 dc_id 可用
         self.original_invoke = self.session.invoke
         self.session.invoke = self.custom_invoke
