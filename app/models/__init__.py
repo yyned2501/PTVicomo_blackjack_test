@@ -28,8 +28,9 @@ def scope_task(loop):
 
 
 async_connection_string = (
-    f"mysql+asyncmy://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}",
+    f"mysql+asyncmy://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}"
 )
+
 async_engine = create_async_engine(
     async_connection_string,
     pool_size=10,
