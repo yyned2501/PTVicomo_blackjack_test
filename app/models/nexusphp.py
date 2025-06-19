@@ -371,7 +371,7 @@ class Redpocket(Base):
 
 
 class RedpocketClaimed(Base):
-    __tablename__ = "custom_redpockets_claimed"
+    __tablename__ = "custom_redpockets_claimed_new"
     redpocket_id: Mapped[int] = mapped_column(ForeignKey("custom_redpockets_new.id"))
     tg_id: Mapped[int] = mapped_column(BigInteger)
     redpocket = relationship(
