@@ -30,9 +30,9 @@ EXAMPLE = (
 )
 CREATE_REDPOCKET = """```
 感谢{redpocket.from_uname}的{redpocket.pocket_type}红包:
-象草: {repocket.remain_bonus}/{repocket.bonus}
-数量: {repocket.remain_count}/{repocket.count}```
-红包附言:{content}"""
+象草: {redpocket.remain_bonus}/{redpocket.bonus}
+数量: {redpocket.remain_count}/{redpocket.count}```
+红包附言:{redpocket.content}"""
 TYPES = {"redpocket": "拼手气", "luckypocket": "锦鲤"}
 ACTION = "redpocket"
 
