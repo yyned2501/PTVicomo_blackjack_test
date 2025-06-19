@@ -177,7 +177,7 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
 
 async def draw_luckypocket(client: Client, redpocket: Redpocket):
     session = ASSession()
-    bonus, tg_id = redpocket.draw_redpocket()
+    bonus, tg_id = await redpocket.draw_redpocket()
     user = await Users.get_user_from_tg_id(tg_id)
     print(bonus, tg_id)
     await user.addbonus(redpocket.bonus, f"锦鲤红包 {redpocket.content} 中奖")
