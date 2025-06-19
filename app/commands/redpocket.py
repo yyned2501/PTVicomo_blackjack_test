@@ -168,6 +168,6 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
                     await session.delete(redpocket)
                     await callback_query.message.delete()
             await callback_query.edit_message_text(
-                message_str=CREATE_REDPOCKET.format(redpocket=redpocket),
+                CREATE_REDPOCKET.format(redpocket=redpocket),
                 reply_markup=create_keyboard(redpocket),
             )
