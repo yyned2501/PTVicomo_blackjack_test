@@ -333,7 +333,9 @@ class Redpocket(Base):
         self.remain_count -= 1
         return bonus
 
-    def draw_redpocket(self):
+    async def draw_redpocket(self):
+        session = ASSession()
+        await session.refresh(self)  # 刷新当前对象，确保 claimed 关系已更新
         n = len(self.claimed)
         lucky_n = random.randint(0, n - 1) if n > 1 else 0
         lucky_user = self.claimed[lucky_n].tg_id
