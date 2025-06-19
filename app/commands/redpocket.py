@@ -134,19 +134,16 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
     data: dict = json.loads(callback_query.data)
     redpocket_id = data.get("id", None)
     async with ASSession() as session, session.begin():
-        print(session)
         async with lock:
             user = await Users.get_user_from_tg_id(callback_query.from_user.id)
             if not user.bot_bind:
                 return await callback_query.answer(USER_BIND_NONE, True)
             redpocket = await session.get(Redpocket, redpocket_id)
-            print(redpocket.content, redpocket.remain_bonus)
             if not redpocket:
                 return await callback_query.answer("红包不存在", True)
             if user.id in redpocket.claimed:
                 return await callback_query.answer("请勿重复领取", True)
             bonus = await redpocket.get(user.bot_bind.telegram_account_id)
-            print(redpocket.remain_bonus, redpocket.remain_count)
             if redpocket._pocket_type == 0:
                 await user.addbonus(
                     bonus, f"领取红包 {redpocket.id}:{redpocket.content}"

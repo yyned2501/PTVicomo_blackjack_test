@@ -333,9 +333,8 @@ class Redpocket(Base):
                     bonus = random.randint(int(avg_bonus * 0.5), int(avg_bonus * 1.5))
                 self.remain_bonus = text(f"remain_bonus-{bonus}")
             self.remain_count = text(f"remain_count-1")
-            session.add(RedpocketClaimed(redpocket_id=self.id, tg_id=tg_id))
-            await session.flush()
             print(self.remain_count)
+            session.add(RedpocketClaimed(redpocket_id=self.id, tg_id=tg_id))
             return bonus
 
     def draw(self):
