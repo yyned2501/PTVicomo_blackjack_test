@@ -28,11 +28,10 @@ NOT_IN_RANGE = (
 EXAMPLE = (
     "请参照以下格式:\n/{command} 象草 个数 红包口令\n`/{command} 20000 10 象岛越来越好`"
 )
-CREATE_REDPOCKET = """```
+CREATE_REDPOCKET = """```{redpocket.content}
 感谢{redpocket.from_uname}的{redpocket.pocket_type}红包:
 象草: {redpocket.remain_bonus}/{redpocket.bonus}
-数量: {redpocket.remain_count}/{redpocket.count}```
-红包附言:{redpocket.content}"""
+数量: {redpocket.remain_count}/{redpocket.count}```"""
 TYPES = {"redpocket": "拼手气", "luckypocket": "锦鲤"}
 ACTION = "redpocket"
 
@@ -144,7 +143,7 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
                 return await callback_query.answer("红包不存在", True)
             if user.id in redpocket.claimed:
                 return await callback_query.answer("请勿重复领取", True)
-            bonus = redpocket.get()
+            bonus = await redpocket.get()
             if redpocket._pocket_type == 0:
                 await user.addbonus(
                     bonus, f"领取红包 {redpocket.id}:{redpocket.content}"
