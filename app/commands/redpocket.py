@@ -132,38 +132,50 @@ async def luckypocket(client: Client, message: Message):
 async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
     callback_query.from_user.id
     data: dict = json.loads(callback_query.data)
-    async with lock:
-        user = await Users.get_user_from_tg_id(callback_query.from_user.id)
-        if not user.bot_bind:
-            return await callback_query.answer(USER_BIND_NONE, True)
-        redpocket = await Redpocket.get(data.get("id", None))
-        if not redpocket:
-            return await callback_query.answer("红包不存在", True)
-        if user.id in redpocket.claimed:
-            return await callback_query.answer("请勿重复领取", True)
-        bonus = await redpocket.get_redpocket()
-        if redpocket._pocket_type == 0:
-            await user.addbonus(bonus, f"领取红包 {redpocket.id}:{redpocket.content}")
-            await callback_query.answer(f"成功领取红包，增加{bonus}象草")
-            # if redpocket.remain_count == 0:
-            #     await session.execute(
-            #         delete(RedpocketClaimed).where(
-            #             RedpocketClaimed.redpocket_id == redpocket.id
-            #         )
-            #     )
-            #     await session.delete(redpocket)
-            #     return await callback_query.message.delete()
-        elif redpocket._pocket_type == 1:
-            await callback_query.answer(f"成功参加锦鲤红包抽奖")
-            # if redpocket.remain_count == 0:
-            #     await session.execute(
-            #         delete(RedpocketClaimed).where(
-            #             RedpocketClaimed.redpocket_id == redpocket.id
-            #         )
-            #     )
-            #     await session.delete(redpocket)
-            #     await callback_query.message.delete()
-        await callback_query.edit_message_text(
-            CREATE_REDPOCKET.format(redpocket=redpocket),
-            reply_markup=create_keyboard(redpocket),
-        )
+    redpocket_id = data.get("id", None)
+    async with ASSession() as session, session.begin():
+        async with lock:
+            user = await Users.get_user_from_tg_id(callback_query.from_user.id)
+            if not user.bot_bind:
+                return await callback_query.answer(USER_BIND_NONE, True)
+            redpocket = await session.get(Redpocket, redpocket_id)
+            if not redpocket:
+                return await callback_query.answer("红包不存在", True)
+            if user.bot_bind.telegram_account_id in [
+                claimed.tg_id for claimed in redpocket.claimed
+            ]:
+                return await callback_query.answer("请勿重复领取", True)
+            bonus = redpocket.get_redpocket()
+            session.add(
+                RedpocketClaimed(
+                    redpocket_id=redpocket.id, tg_id=user.bot_bind.telegram_account_id
+                )
+            )
+            session.flush()
+            if redpocket._pocket_type == 0:
+                await user.addbonus(
+                    bonus, f"领取红包 {redpocket.id}:{redpocket.content}"
+                )
+                await callback_query.answer(f"成功领取红包，增加{bonus}象草")
+                if redpocket.remain_count == 0:
+                    await session.execute(
+                        delete(RedpocketClaimed).where(
+                            RedpocketClaimed.redpocket_id == redpocket.id
+                        )
+                    )
+                    await session.delete(redpocket)
+                    return await callback_query.message.delete()
+            elif redpocket._pocket_type == 1:
+                await callback_query.answer(f"成功参加锦鲤红包抽奖")
+                if redpocket.remain_count == 0:
+                    await session.execute(
+                        delete(RedpocketClaimed).where(
+                            RedpocketClaimed.redpocket_id == redpocket.id
+                        )
+                    )
+                    await session.delete(redpocket)
+                    await callback_query.message.delete()
+            await callback_query.edit_message_text(
+                CREATE_REDPOCKET.format(redpocket=redpocket),
+                reply_markup=create_keyboard(redpocket),
+            )

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import (
 
 
 from config import MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_DATABASE
+from app.models.base import Base
 
 logger = logging.getLogger("main")
 
@@ -44,7 +45,7 @@ ASSession = async_scoped_session(
 
 
 async def create_all():
-    from app.models.base import Base
+
     from . import nexusphp
 
     async with async_engine.begin() as conn:
