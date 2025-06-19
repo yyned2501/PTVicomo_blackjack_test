@@ -167,9 +167,8 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
             elif redpocket._pocket_type == 1:
                 await callback_query.answer(f"成功参加锦鲤红包抽奖")
                 if redpocket.remain_count == 0:
-                    print("准备开奖")
-                    asyncio.create_task(draw_luckypocket(client, redpocket))
-                    return await callback_query.message.delete()
+                    await callback_query.message.delete()
+                    return await draw_luckypocket(client, redpocket)
             await callback_query.edit_message_text(
                 CREATE_REDPOCKET.format(redpocket=redpocket),
                 reply_markup=create_keyboard(redpocket),
@@ -177,28 +176,24 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
 
 
 async def draw_luckypocket(client: Client, redpocket: Redpocket):
-    print("kaijiang")
-    async with ASSession() as session:
-        async with session.begin():
-            async with lock:
-                redpocket = await session.merge(redpocket)
-                bonus, tg_id = redpocket.draw_redpocket()
-                user = await Users.get_user_from_tg_id(tg_id)
-                print(bonus, tg_id)
-                await user.addbonus(
-                    redpocket.bonus, f"锦鲤红包 {redpocket.content} 中奖"
-                )
-                await session.execute(
-                    delete(RedpocketClaimed).where(
-                        RedpocketClaimed.redpocket_id == redpocket.id
-                    )
-                )
-                reply_user = (
-                    f"[{user.bot_bind.telegram_account_username}](tg://user?id={tg_id})"
-                )
-                message = await client.send_message(
-                    GROUP_ID[0],
-                    f"恭喜锦鲤 {reply_user} \n获得锦鲤红包 {redpocket.content} 的奖励\n成功获得 {bonus} 象草",
-                )
-                await session.delete(redpocket)
-                return message
+    session = ASSession()
+    async with lock:
+        redpocket = await session.merge(redpocket)
+        bonus, tg_id = redpocket.draw_redpocket()
+        user = await Users.get_user_from_tg_id(tg_id)
+        print(bonus, tg_id)
+        await user.addbonus(redpocket.bonus, f"锦鲤红包 {redpocket.content} 中奖")
+        await session.execute(
+            delete(RedpocketClaimed).where(
+                RedpocketClaimed.redpocket_id == redpocket.id
+            )
+        )
+        reply_user = (
+            f"[{user.bot_bind.telegram_account_username}](tg://user?id={tg_id})"
+        )
+        message = await client.send_message(
+            GROUP_ID[0],
+            f"恭喜锦鲤 {reply_user} \n获得锦鲤红包 {redpocket.content} 的奖励\n成功获得 {bonus} 象草",
+        )
+        await session.delete(redpocket)
+        return message
