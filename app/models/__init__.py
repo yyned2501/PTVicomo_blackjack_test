@@ -39,7 +39,7 @@ async_engine = create_async_engine(
     pool_recycle=3600,
 )
 ASSession = async_scoped_session(
-    async_sessionmaker(bind=async_engine, expire_on_commit=False, class_=AsyncSession),
+    async_sessionmaker(bind=async_engine, class_=AsyncSession),
     asyncio.current_task,
 )
 
