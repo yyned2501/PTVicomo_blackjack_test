@@ -98,7 +98,14 @@ async def create_redpocket(client: Client, message: Message, type_: int):
         if user.seedbonus < bonus:
             return await message.reply(NOT_ENOUGH_BONUS)
         async with lock:
-            redpocket = await Redpocket.create(user.id, bonus, count, content, type_)
+            redpocket = await Redpocket.create(
+                user.id,
+                user.bot_bind.telegram_account_username,
+                bonus,
+                count,
+                content,
+                type_,
+            )
             message_str = CREATE_REDPOCKET.format(redpocket=redpocket)
             bonus = await qfz_bonus(client, user, bonus)
             await user.addbonus(-bonus, f"发红包{content}")
