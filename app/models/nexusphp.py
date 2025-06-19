@@ -333,7 +333,7 @@ class Redpocket(Base):
                 self.remain_bonus = text(f"remain_bonus-{bonus}")
             self.remain_count = text(f"remain_count-1")
             session.add(RedpocketClaimed(redpocket_id=self.id, tg_id=tg_id))
-            session.flush()
+            await session.flush()
             return bonus
 
     def draw(self):
