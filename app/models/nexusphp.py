@@ -329,8 +329,8 @@ class Redpocket(Base):
                 bonus = self.remain_bonus
             else:
                 bonus = random.randint(int(avg_bonus * 0.5), int(avg_bonus * 1.5))
-            self.remain_bonus = text(f"remain_bonus-{bonus}")
-        self.remain_count = text(f"remain_count-1")
+            self.remain_bonus -= bonus
+        self.remain_count -= 1
         return bonus
 
     def draw_redpocket(self):

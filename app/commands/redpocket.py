@@ -151,7 +151,7 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
                     redpocket_id=redpocket.id, tg_id=user.bot_bind.telegram_account_id
                 )
             )
-            await session.flush()
+            # await session.flush()
             if redpocket._pocket_type == 0:
                 await user.addbonus(
                     bonus, f"领取红包 {redpocket.id}:{redpocket.content}"
