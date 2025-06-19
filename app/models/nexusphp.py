@@ -321,8 +321,8 @@ class Redpocket(Base):
     )
     tpye_name = ["拼手气红包", "锦鲤红包"]
 
-    async def get(self):
-        async with ASSession().begin():
+    async def get(self, tg_id):
+        async with (session := ASSession()).begin():
             bonus = None
             if self._pocket_type == 0:
                 avg_bonus = self.remain_bonus / self.remain_count
@@ -332,6 +332,7 @@ class Redpocket(Base):
                     bonus = random.randint(int(avg_bonus * 0.5), int(avg_bonus * 1.5))
                 self.remain_bonus = text(f"remain_bonus-{bonus}")
             self.remain_count = text(f"remain_count-1")
+            session.add(RedpocketClaimed(redpocket_id=self.id, tg_id=tg_id))
         return bonus
 
     def draw(self):

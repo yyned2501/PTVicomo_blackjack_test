@@ -143,7 +143,7 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
                 return await callback_query.answer("红包不存在", True)
             if user.id in redpocket.claimed:
                 return await callback_query.answer("请勿重复领取", True)
-            bonus = await redpocket.get()
+            bonus = await redpocket.get(user.bot_bind.telegram_account_id)
             if redpocket._pocket_type == 0:
                 await user.addbonus(
                     bonus, f"领取红包 {redpocket.id}:{redpocket.content}"
