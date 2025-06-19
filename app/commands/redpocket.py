@@ -62,9 +62,9 @@ def init_message(message: Message):
         count = int(message.command[2])
         password = " ".join([s for s in message.command[3:] if s != ""])
     except Exception:
-        raise BaseException(f"格式有误! {EXAMPLE.format(command=command)}")
-    except BaseException as e:
-        raise BaseException(e)
+        raise BaseException(
+            "格式有误! 请参照以下格式:\n/命令 象草 个数 红包口令\n`/命令 20000 10 象岛越来越好`"
+        )
     pb = round(bonus / count, 1)
     if pb > POCKET_MAX or pb < POCKET_MIN:
         raise BaseException(
@@ -75,7 +75,7 @@ def init_message(message: Message):
 
 async def qfz_bonus(client: Client, user: Users, bonus: int):
     if user.is_role(13):
-        qfz_bonus = int(redis_cli.get("qfz_bonus"))
+        qfz_bonus = int(redis_cli.get("qfz_bonus") or 0)
         if qfz_bonus > 0:
             user_qfz_bonus = min(qfz_bonus, bonus)
             qfz_bonus -= user_qfz_bonus
@@ -116,13 +116,13 @@ async def create_redpocket(client: Client, message: Message, type_: int):
             )
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("redpocket_new"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("redpocket_new"))
 @auto_delete_message()
 async def redpocket(client: Client, message: Message):
     return await create_redpocket(client, message, 0)
 
 
-@app.on_message(filters.chat(GROUP_ID) & filters.command("luckypocket_new"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("luckypocket_new"))
 @auto_delete_message()
 async def luckypocket(client: Client, message: Message):
     return await create_redpocket(client, message, 1)
@@ -151,7 +151,6 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
                     redpocket_id=redpocket.id, tg_id=user.bot_bind.telegram_account_id
                 )
             )
-            # await session.flush()
             if redpocket._pocket_type == 0:
                 await user.addbonus(
                     bonus, f"领取红包 {redpocket.id}:{redpocket.content}"
@@ -175,7 +174,31 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
                     )
                     await session.delete(redpocket)
                     await callback_query.message.delete()
+                    asyncio.create_task(draw_luckypocket(client, redpocket))
             await callback_query.edit_message_text(
                 CREATE_REDPOCKET.format(redpocket=redpocket),
                 reply_markup=create_keyboard(redpocket),
             )
+
+
+async def draw_luckypocket(client: Client, redpocket: Redpocket):
+    async with ASSession() as session:
+        async with session.begin():
+            redpocket = await session.merge(redpocket)
+            bonus, tg_id = redpocket.draw_redpocket()
+            user = await Users.get_user_from_tg_id(tg_id)
+
+            await user.addbonus(redpocket.bonus, f"锦鲤红包 {redpocket.content} 中奖")
+            async with lock:
+                await session.execute(
+                    delete(RedpocketClaimed).where(
+                        RedpocketClaimed.redpocket_id == redpocket.id
+                    )
+                )
+                reply_user = (
+                    f"[{user.bot_bind.telegram_account_username}](tg://user?id={tg_id})"
+                )
+                return await client.send_message(
+                    GROUP_ID[0],
+                    f"恭喜锦鲤 {reply_user} \n获得锦鲤红包 {redpocket.content} 的奖励\n成功获得 {bonus} 象草",
+                )
