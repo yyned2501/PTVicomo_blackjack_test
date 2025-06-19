@@ -139,7 +139,7 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
             if not user.bot_bind:
                 return await callback_query.answer(USER_BIND_NONE, True)
             redpocket = await session.get(Redpocket, redpocket_id)
-            print(redpocket)
+            print(redpocket.content, redpocket.remain_bonus)
             if not redpocket:
                 return await callback_query.answer("红包不存在", True)
             if user.id in redpocket.claimed:
