@@ -134,6 +134,7 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
     data: dict = json.loads(callback_query.data)
     redpocket_id = data.get("id", None)
     async with ASSession() as session, session.begin():
+        print(session)
         async with lock:
             user = await Users.get_user_from_tg_id(callback_query.from_user.id)
             if not user.bot_bind:
