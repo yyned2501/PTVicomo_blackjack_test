@@ -110,7 +110,9 @@ async def create_redpocket(client: Client, message: Message, type_: int):
             bonus = await qfz_bonus(client, user, bonus)
             await user.addbonus(-bonus, f"发红包{content}")
             return (
-                await message.reply(message_str, reply_markup=create_keyboard()),
+                await message.reply(
+                    message_str, reply_markup=create_keyboard(redpocket)
+                ),
                 False,
             )
 
