@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession as _AsyncSession,
 )
 
-from app.models.base import Base
 
 from config import MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_DATABASE
 
@@ -45,6 +44,7 @@ ASSession = async_scoped_session(
 
 
 async def create_all():
+    from app.models.base import Base
     from . import nexusphp
 
     async with async_engine.begin() as conn:
