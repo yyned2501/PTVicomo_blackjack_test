@@ -173,6 +173,7 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                         )
                     )
                     await session.delete(redpocket)
+                    print("准备开奖")
                     asyncio.create_task(draw_luckypocket(client, redpocket))
                     return await callback_query.message.delete()
             await callback_query.edit_message_text(
@@ -182,6 +183,7 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
 
 
 async def draw_luckypocket(client: Client, redpocket: Redpocket):
+    print("kaijiang")
     async with ASSession() as session:
         async with session.begin():
             redpocket = await session.merge(redpocket)
