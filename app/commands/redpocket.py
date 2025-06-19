@@ -129,7 +129,7 @@ async def luckypocket(client: Client, message: Message):
 
 
 @Client.on_callback_query(CallbackDataFromFilter(ACTION))
-async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
+async def redpocket_callback(client: Client, callback_query: CallbackQuery):
     callback_query.from_user.id
     data: dict = json.loads(callback_query.data)
     redpocket_id = data.get("id", None)
@@ -173,8 +173,8 @@ async def ydx_set_callback(client: Client, callback_query: CallbackQuery):
                         )
                     )
                     await session.delete(redpocket)
-                    await callback_query.message.delete()
                     asyncio.create_task(draw_luckypocket(client, redpocket))
+                    return await callback_query.message.delete()
             await callback_query.edit_message_text(
                 CREATE_REDPOCKET.format(redpocket=redpocket),
                 reply_markup=create_keyboard(redpocket),
