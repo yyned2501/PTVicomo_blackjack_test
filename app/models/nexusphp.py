@@ -326,7 +326,7 @@ class Redpocket(Base):
             bonus = None
             if self._pocket_type == 0:
                 avg_bonus = self.remain_bonus / self.remain_count
-                if self.remain_bonus == 1:
+                if self.remain_count == 1:
                     bonus = self.remain_bonus
                 else:
                     bonus = random.randint(int(avg_bonus * 0.5), int(avg_bonus * 1.5))
