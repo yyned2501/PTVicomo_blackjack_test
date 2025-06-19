@@ -335,7 +335,7 @@ class Redpocket(Base):
 
     def draw_redpocket(self):
         n = len(self.claimed)
-        lucky_n = random.randint(0, n - 1)
+        lucky_n = random.randint(0, n - 1) if n > 1 else 0
         lucky_user = self.claimed[lucky_n].tg_id
         return self.bonus, lucky_user
 

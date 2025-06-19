@@ -189,7 +189,7 @@ async def draw_luckypocket(client: Client, redpocket: Redpocket):
             redpocket = await session.merge(redpocket)
             bonus, tg_id = redpocket.draw_redpocket()
             user = await Users.get_user_from_tg_id(tg_id)
-
+            print(bonus, tg_id)
             await user.addbonus(redpocket.bonus, f"锦鲤红包 {redpocket.content} 中奖")
             async with lock:
                 await session.execute(
