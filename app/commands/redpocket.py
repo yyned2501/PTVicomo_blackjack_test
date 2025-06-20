@@ -28,8 +28,8 @@ NOT_IN_RANGE = (
 EXAMPLE = (
     "请参照以下格式:\n/{command} 象草 个数 红包口令\n`/{command} 20000 10 象岛越来越好`"
 )
-CREATE_REDPOCKET = """```{redpocket.content}
-感谢{redpocket.from_uname}的{redpocket.pocket_type}红包:
+CREATE_REDPOCKET = """```{redpocket.pocket_type}:{redpocket.content}
+饲养员:{redpocket.from_uname}
 象草: {redpocket.remain_bonus}/{redpocket.bonus}
 数量: {redpocket.remain_count}/{redpocket.count}```"""
 TYPES = {"redpocket": "拼手气", "luckypocket": "锦鲤"}
