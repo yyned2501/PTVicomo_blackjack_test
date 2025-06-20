@@ -72,9 +72,7 @@ def init_message(message: Message):
         count = int(message.command[2])
         password = " ".join([s for s in message.command[3:] if s != ""])
     except Exception:
-        raise BaseException(
-            "格式有误! 请参照以下格式:\n/命令 象草 个数 红包口令\n`/命令 20000 10 象岛越来越好`"
-        )
+        raise BaseException(EXAMPLE.format(command))
     pb = round(bonus / count, 1)
     if pb > POCKET_MAX or pb < POCKET_MIN:
         raise BaseException(
