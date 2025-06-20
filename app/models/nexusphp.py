@@ -181,7 +181,8 @@ class Users(Base):
 
     @classmethod
     async def bind(cls, passkey: str, message: Message):
-        async with (session := ASSession()).begin():
+        session = ASSession()
+        async with session.begin():
             user = (
                 await session.execute(select(cls).filter(cls.passkey == passkey))
             ).scalar_one_or_none()
@@ -202,13 +203,15 @@ class Users(Base):
                 return True
 
     async def unbind(self):
-        async with (session := ASSession()).begin():
+        session = ASSession()
+        async with session.begin():
             if self.bot_bind:
                 await session.delete(self.bot_bind)
 
     @classmethod
     async def get_user_from_tg_id(cls, tg_id: int):
-        async with (session := ASSession()).begin():
+        session = ASSession()
+        async with session.begin():
             user = (
                 await session.execute(
                     select(cls)
@@ -241,14 +244,16 @@ class Users(Base):
         return tg_name
 
     async def update_tg_name(self, message: Message):
-        async with (session := ASSession()).begin():
+        session = ASSession()
+        async with session.begin():
             tg_name = self.get_tg_name(message)
             self.bot_bind.telegram_account_username = tg_name
             await session.flush()
 
     @classmethod
     async def get_user_from_tgmessage(cls, message: Message):
-        async with (session := ASSession()).begin():
+        session = ASSession()
+        async with session.begin():
             user = await cls.get_user_from_tg_id(message.from_user.id)
             if user:
                 await user.update_tg_name(message)
@@ -409,7 +414,8 @@ class TgMessages(Base):
     @classmethod
     async def get_tgmess_from_tgmessage(cls, message: Message):
         tg_id = message.from_user.id
-        async with (session := ASSession()).begin():
+        session = ASSession()
+        async with session.begin():
             tgmess = (
                 await session.execute(select(cls).filter(cls.tg_id == tg_id))
             ).scalar_one_or_none()
