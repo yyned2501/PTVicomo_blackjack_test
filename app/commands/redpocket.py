@@ -145,7 +145,7 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                 claimed.tg_id for claimed in redpocket.claimed
             ]:
                 return await callback_query.answer("请勿重复领取", True)
-            bonus = redpocket.get_redpocket()
+            bonus = await redpocket.get_redpocket()
             session.add(
                 RedpocketClaimed(
                     redpocket_id=redpocket.id, tg_id=user.bot_bind.telegram_account_id
