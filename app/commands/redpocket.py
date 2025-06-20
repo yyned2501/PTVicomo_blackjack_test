@@ -263,7 +263,7 @@ async def drawredpocket(client: Client, message: Message):
                 f"[{redpocket.id}-{redpocket.pocket_type}-{redpocket.content}]({redpocket.message_link})"
             )
         ret_text = "\n".join(ret)
-        return await message.reply(f"您可以发出的红包如下：\n{ret_text}")
+        return await message.reply(f"您发出的红包如下：\n{ret_text}")
 
 
 @Client.on_callback_query(CallbackDataFromFilter(f"draw_{ACTION}"))
