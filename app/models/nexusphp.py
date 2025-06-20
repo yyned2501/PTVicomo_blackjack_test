@@ -320,6 +320,7 @@ class Redpocket(Base):
     remain_bonus: Mapped[int] = mapped_column(Integer)
     count: Mapped[int] = mapped_column(Integer)
     remain_count: Mapped[int] = mapped_column(Integer)
+    message_link: Mapped[str] = mapped_column(String(255))
     _pocket_type: Mapped[int] = mapped_column("pocket_type", Integer)
     claimed: Mapped[list["RedpocketClaimed"]] = relationship(
         "RedpocketClaimed", lazy="subquery"
@@ -354,6 +355,7 @@ class Redpocket(Base):
         bonus: int,
         count: int,
         content: str,
+        link: str,
         type_: int,
     ):
         async with (session := ASSession()).begin():
@@ -365,6 +367,7 @@ class Redpocket(Base):
                 remain_bonus=bonus,
                 count=count,
                 remain_count=count,
+                message_link=link,
                 _pocket_type=type_,
             )
             session.add(redpocket)

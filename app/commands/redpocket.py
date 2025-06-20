@@ -116,13 +116,13 @@ async def create_redpocket(client: Client, message: Message, type_: int):
             )
 
 
-@Client.on_message(filters.chat(GROUP_ID) & filters.command("redpocket_new"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("redpocket"))
 @auto_delete_message()
 async def redpocket(client: Client, message: Message):
     return await create_redpocket(client, message, 0)
 
 
-@Client.on_message(filters.chat(GROUP_ID) & filters.command("luckypocket_new"))
+@Client.on_message(filters.chat(GROUP_ID) & filters.command("luckypocket"))
 @auto_delete_message()
 async def luckypocket(client: Client, message: Message):
     return await create_redpocket(client, message, 1)
@@ -191,3 +191,28 @@ async def draw_luckypocket(client: Client, redpocket: Redpocket):
     )
     await session.delete(redpocket)
     return message
+
+
+@app.on_message(filters.chat(GROUP_ID) & filters.command("listredpocket"))
+@auto_delete_message()
+async def listredpocket(client: Client, message: Message):
+    async with ASSession() as session, session.begin():
+        user = await Users.get_user_from_tgmessage(message)
+        if not user.bot_bind:
+            return await message.reply(USER_BIND_NONE)
+        ret = []
+        results = await session.execute(
+            select(Redpocket)
+            .outerjoin(
+                RedpocketClaimed,
+                (Redpocket.id == RedpocketClaimed.redpocket_id)
+                & (RedpocketClaimed.tg_id == message.from_user.id),
+            )
+            .filter(RedpocketClaimed.redpocket_id.is_(None))
+        )
+        for redpocket in results.scalars():
+            ret.append(
+                f"[{redpocket.id}-{redpocket.pocket_type}-{redpocket.content}]({redpocket.message_link})"
+            )
+        ret_text = "\n".join(ret)
+        return await message.reply(f"未领红包如下：\n{ret_text}")
