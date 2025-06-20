@@ -250,7 +250,7 @@ async def drawredpocket(client: Client, message: Message):
 
 
 @Client.on_callback_query(CallbackDataFromFilter(f"draw_{ACTION}"))
-async def redpocket_callback(client: Client, callback_query: CallbackQuery):
+async def draw_redpocket_callback(client: Client, callback_query: CallbackQuery):
     callback_query.from_user.id
     data: dict = json.loads(callback_query.data)
     redpocket_id = data.get("id", None)
