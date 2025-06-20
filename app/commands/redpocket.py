@@ -51,7 +51,7 @@ def create_keyboard(redpocket: Redpocket):
                     ),
                 ),
                 InlineKeyboardButton(
-                    "点击领取红包",
+                    "删除红包",
                     callback_data=json.dumps(
                         {
                             "id": redpocket.id,
@@ -271,6 +271,9 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                     await callback_query.message.delete()
                     return await draw_luckypocket(client, redpocket)
                 else:
+                    await callback_query.answer(
+                        f"回收红包 {redpocket.content} 回收象草 {redpocket.remain_bonus}"
+                    )
                     await user.addbonus(
                         redpocket.remain_bonus, f"回收红包 {redpocket.content}"
                     )
