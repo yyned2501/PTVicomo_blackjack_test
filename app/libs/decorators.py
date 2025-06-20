@@ -23,14 +23,14 @@ def auto_delete_message(
     ):
         async def wrapper(client, message: Message):
             sent_message = await func(client, message)
-            if isinstance(sent_message, tuple):
-                sent_message, delete_message = sent_message
-                if not delete_message:
-                    return
             if delete_from_message_immediately:
                 await message.delete()
             if delete_from_message and not delete_from_message_immediately:
                 s_delete_message(message, delay)
+            if isinstance(sent_message, tuple):
+                sent_message, delete_message = sent_message
+                if not delete_message:
+                    return
             if sent_message:
                 s_delete_message(sent_message, delay)
 
