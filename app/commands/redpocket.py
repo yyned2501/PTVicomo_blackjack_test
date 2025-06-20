@@ -230,6 +230,23 @@ async def listredpocket(client: Client, message: Message):
         return await message.reply(f"未领红包如下：\n{ret_text}")
 
 
+@app.on_message(filters.chat(GROUP_ID) & filters.command("listredpocketall"))
+@auto_delete_message()
+async def listredpocket(client: Client, message: Message):
+    async with ASSession() as session, session.begin():
+        user = await Users.get_user_from_tgmessage(message)
+        if not user.bot_bind:
+            return await message.reply(USER_BIND_NONE)
+        ret = []
+        results = await session.execute(select(Redpocket))
+        for redpocket in results.scalars():
+            ret.append(
+                f"[{redpocket.id}-{redpocket.pocket_type}-{redpocket.content}]({redpocket.message_link})"
+            )
+        ret_text = "\n".join(ret)
+        return await message.reply(f"全部红包如下：\n{ret_text}")
+
+
 @app.on_message(filters.chat(GROUP_ID) & filters.command("drawredpocket"))
 @auto_delete_message()
 async def drawredpocket(client: Client, message: Message):
