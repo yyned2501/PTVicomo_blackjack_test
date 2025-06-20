@@ -50,6 +50,15 @@ def create_keyboard(redpocket: Redpocket):
                         }
                     ),
                 ),
+                InlineKeyboardButton(
+                    "点击领取红包",
+                    callback_data=json.dumps(
+                        {
+                            "id": redpocket.id,
+                            "a": f"draw_{ACTION}",
+                        }
+                    ),
+                ),
             ]
         ]
     )
@@ -183,7 +192,6 @@ async def draw_luckypocket(client: Client, redpocket: Redpocket):
     session = ASSession()
     bonus, tg_id = await redpocket.draw_redpocket()
     user = await Users.get_user_from_tg_id(tg_id)
-    print(bonus, tg_id)
     await user.addbonus(redpocket.bonus, f"锦鲤红包 {redpocket.content} 中奖")
     await session.execute(
         delete(RedpocketClaimed).where(RedpocketClaimed.redpocket_id == redpocket.id)
@@ -220,3 +228,56 @@ async def listredpocket(client: Client, message: Message):
             )
         ret_text = "\n".join(ret)
         return await message.reply(f"未领红包如下：\n{ret_text}")
+
+
+@app.on_message(filters.chat(GROUP_ID) & filters.command("drawredpocket"))
+@auto_delete_message()
+async def drawredpocket(client: Client, message: Message):
+    async with ASSession() as session, session.begin():
+        user = await Users.get_user_from_tgmessage(message)
+        if not user.bot_bind:
+            return await message.reply(USER_BIND_NONE)
+        ret = []
+        results = await session.execute(
+            select(Redpocket).filter(Redpocket.from_uid == user.id)
+        )
+        for redpocket in results.scalars():
+            ret.append(
+                f"[{redpocket.id}-{redpocket.pocket_type}-{redpocket.content}]({redpocket.message_link})"
+            )
+        ret_text = "\n".join(ret)
+        return await message.reply(f"您可以发出的红包如下：\n{ret_text}")
+
+
+@Client.on_callback_query(CallbackDataFromFilter(f"draw_{ACTION}"))
+async def redpocket_callback(client: Client, callback_query: CallbackQuery):
+    callback_query.from_user.id
+    data: dict = json.loads(callback_query.data)
+    redpocket_id = data.get("id", None)
+    async with ASSession() as session, session.begin():
+        async with lock:
+            user = await Users.get_user_from_tg_id(callback_query.from_user.id)
+            if not user.bot_bind:
+                return await callback_query.answer(USER_BIND_NONE, True)
+            redpocket = await session.get(Redpocket, redpocket_id)
+            if not redpocket:
+                return await callback_query.message.delete()
+            if redpocket:
+                if not user.bot_bind or (
+                    user._class < 14 and redpocket.from_uid != user.id
+                ):
+                    return await callback_query.answer("您没有此权限", True)
+                if redpocket._pocket_type == 1 and len(redpocket.claimed) > 0:
+                    await callback_query.message.delete()
+                    return await draw_luckypocket(client, redpocket)
+                else:
+                    await user.addbonus(
+                        redpocket.remain_bonus, f"回收红包 {redpocket.content}"
+                    )
+                    await session.execute(
+                        delete(RedpocketClaimed).where(
+                            RedpocketClaimed.redpocket_id == redpocket.id
+                        )
+                    )
+                    await session.delete(redpocket)
+                    return await callback_query.message.delete()
