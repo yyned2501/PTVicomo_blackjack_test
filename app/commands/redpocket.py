@@ -268,6 +268,7 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                 ):
                     return await callback_query.answer("您没有此权限", True)
                 if redpocket._pocket_type == 1 and len(redpocket.claimed) > 0:
+                    await callback_query.answer(f"提前开奖锦鲤红包")
                     await callback_query.message.delete()
                     return await draw_luckypocket(client, redpocket)
                 else:
