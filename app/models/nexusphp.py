@@ -413,8 +413,8 @@ class TgMessages(Base):
 
     @classmethod
     async def get_tgmess_from_tgmessage(cls, message: Message):
-        tg_id = message.from_user.id
         session = ASSession()
+        tg_id = message.from_user.id
         async with session.begin():
             tgmess = (
                 await session.execute(select(cls).filter(cls.tg_id == tg_id))
