@@ -95,6 +95,10 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
     (BotCommand("ban", "禁言用户"), [CommandScope.GROUP_CHAT_ADMIN]),
     (BotCommand("unban", "取消禁言"), [CommandScope.GROUP_CHAT_ADMIN]),
     (
+        BotCommand("welcome_set", "设置欢迎关键词"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
         BotCommand("hint_set", "设置自动回复关键词"),
         [CommandScope.ADMIN_CHAT],
     ),
