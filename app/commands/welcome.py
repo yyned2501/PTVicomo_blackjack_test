@@ -7,13 +7,15 @@ from config import GROUP_ID
 
 
 @Client.on_chat_member_updated(filters.chat(GROUP_ID))
-async def welcome_new_member(client: Client, message: ChatMemberUpdated):
-    member = message.new_chat_member.user
+async def welcome_new_member(client: Client, update: ChatMemberUpdated):
+    member = update.new_chat_member.user
     # 获取新成员的用户名或名字
     user_mention = member.mention if member.username else member.first_name
     # 发送欢迎消息
     welcome_str = redis_cli.get(f"welcome").decode("utf-8")
-    await message.reply_text(f"欢迎 {user_mention} 加入群聊！🎉\n" f"{welcome_str}")
+    await client.send_message(
+        update.chat.id, f"欢迎 {user_mention} 加入群聊！🎉\n" f"{welcome_str}"
+    )
 
 
 @Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("welcome_set"))
