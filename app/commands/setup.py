@@ -111,11 +111,7 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
         [CommandScope.ADMIN_CHAT],
     ),
     (
-        BotCommand("restart_extra", "重启 ex_app 程序"),
-        [CommandScope.ADMIN_CHAT],
-    ),
-    (
-        BotCommand("restart_basic", "重启 basic_app 程序"),
+        BotCommand("restart_all", "重启bot"),
         [CommandScope.ADMIN_CHAT],
     ),
     (

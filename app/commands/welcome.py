@@ -6,7 +6,7 @@ from app.libs.decorators import auto_delete_message
 from config import GROUP_ID
 
 
-@Client.on_message(filters.new_chat_members)
+@Client.on_chat_member_updated(filters.chat(GROUP_ID))
 async def welcome_new_member(client: Client, message: Message):
     for member in message.new_chat_members:
         # 获取新成员的用户名或名字
