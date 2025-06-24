@@ -100,7 +100,7 @@ async def create_redpocket(client: Client, message: Message, type_: int):
         return await message.reply(e)
     async with ASSession() as session, session.begin():
         user = await Users.get_user_from_tgmessage(message)
-        if not user.bot_bind:
+        if not user or not user.bot_bind:
             return await message.reply(USER_BIND_NONE)
         if user.seedbonus < bonus:
             return await message.reply(NOT_ENOUGH_BONUS)
@@ -147,7 +147,7 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
     async with ASSession() as session, session.begin():
         async with lock:
             user = await Users.get_user_from_tg_id(callback_query.from_user.id)
-            if not user.bot_bind:
+            if not user or not user.bot_bind:
                 return await callback_query.answer(USER_BIND_NONE, True)
             redpocket = await session.get(Redpocket, redpocket_id)
             if not redpocket:
@@ -208,7 +208,7 @@ async def draw_luckypocket(client: Client, redpocket: Redpocket):
 async def listredpocket(client: Client, message: Message):
     async with ASSession() as session, session.begin():
         user = await Users.get_user_from_tgmessage(message)
-        if not user.bot_bind:
+        if not user or not user.bot_bind:
             return await message.reply(USER_BIND_NONE)
         ret = []
         results = await session.execute(
@@ -233,7 +233,7 @@ async def listredpocket(client: Client, message: Message):
 async def listredpocket(client: Client, message: Message):
     async with ASSession() as session, session.begin():
         user = await Users.get_user_from_tgmessage(message)
-        if not user.bot_bind:
+        if not user or not user.bot_bind:
             return await message.reply(USER_BIND_NONE)
         ret = []
         results = await session.execute(select(Redpocket))
@@ -250,7 +250,7 @@ async def listredpocket(client: Client, message: Message):
 async def drawredpocket(client: Client, message: Message):
     async with ASSession() as session, session.begin():
         user = await Users.get_user_from_tgmessage(message)
-        if not user.bot_bind:
+        if not user or not user.bot_bind:
             return await message.reply(USER_BIND_NONE)
         ret = []
         results = await session.execute(
@@ -272,7 +272,7 @@ async def draw_redpocket_callback(client: Client, callback_query: CallbackQuery)
     async with ASSession() as session, session.begin():
         async with lock:
             user = await Users.get_user_from_tg_id(callback_query.from_user.id)
-            if not user.bot_bind:
+            if not user or not user.bot_bind:
                 return await callback_query.answer(USER_BIND_NONE, True)
             redpocket = await session.get(Redpocket, redpocket_id)
             if not redpocket:
