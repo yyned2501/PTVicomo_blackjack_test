@@ -4,6 +4,6 @@ from app.schedulers import (
     post_news,
     water_bonus,
     qfz_bonus,
-    fresh,
-    delete_message,
+    # fresh,
+    # delete_message,
 )
