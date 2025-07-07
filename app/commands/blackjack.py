@@ -329,7 +329,7 @@ async def handle_callback_query(client: Client, callback_query: CallbackQuery):
                 reply_markup=reply_markup,
             )
             deck.save_to_redis(chat_id, message_id)
-    return
+    return await callback_query.answer("拿牌成功")
 
 
 @Client.on_callback_query(filters.regex(r"done"))
@@ -351,7 +351,7 @@ async def handle_done_callback_query(client: Client, callback_query: CallbackQue
             )
             s_delete_message(callback_query.message, 60)
             s_delete_message(callback_query.message.reply_to_message)
-    return
+    return await callback_query.answer("结束成功")
 
 
 result_map = {1: "你赢了！", 0: "平局！", -1: "你输了！"}
