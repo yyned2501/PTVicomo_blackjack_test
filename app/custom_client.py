@@ -44,30 +44,17 @@ class Client(_Client):
                 await asyncio.sleep(wait_time)
                 retries += 1
             except asyncio.TimeoutError as e:
-                logger.error(f"TimeoutError for {query.__class__.__name__}")
+                logger.error(
+                    f"TimeoutError for {query.__class__.__name__}", exc_info=True
+                )
                 await asyncio.sleep(1)
                 retries += 1
-                if retries == max_retries:
-                    traceback.print_exc()
             except RPCError as e:
-                logger.error(f"RPCError for {query.__class__.__name__}")
+                logger.error(f"RPCError for {query.__class__.__name__}", exc_info=True)
                 if isinstance(e, (Unauthorized, AuthKeyInvalid)):
                     raise
                 await asyncio.sleep(1)
                 retries += 1
-                if retries == max_retries:
-                    traceback.print_exc()
             except Exception as e:
-                logger.error(f"意外错误 for {query.__class__.__name__}")
+                logger.error(f"意外错误 for {query.__class__.__name__}", exc_info=True)
                 retries += 1
-                if retries == max_retries:
-                    traceback.print_exc()
-
-        logger.critical(
-            f"超过最大重试次数 ({max_retries}) for {query.__class__.__name__}。触发 Supervisor 重启。"
-        )
-        try:
-            await self.stop()
-        except Exception as e:
-            logger.error(f"关闭会话失败: {traceback.format_exc()}")
-        sys.exit(1)
