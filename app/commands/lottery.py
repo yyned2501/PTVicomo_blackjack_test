@@ -326,8 +326,8 @@ async def lotteryhistory(client: Client, message: Message):
             ret = "历史20次记录:"
             for history in result.scalars():
                 number = history.number
-                ret += f"\n{to_emoji_number(history.number)} : " + "".join(
-                    [f"{i}" if to_emoji_number(i) in number else "  " for i in range(10)]
+                ret += f"\n 第[{history.id}期]{history.number} : " + "".join(
+                    [f"{i}" if str(i) in number else "  " for i in range(10)]
                 )
             return await message.reply(ret)
 
