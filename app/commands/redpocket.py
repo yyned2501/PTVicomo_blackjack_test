@@ -174,7 +174,7 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                         )
                     )
                     await session.delete(redpocket)
-                    return await callback_query.message.delete()
+                    return await callback_query.edit_message_reply_markup()
             elif redpocket._pocket_type == 1:
                 await callback_query.answer(f"成功参加锦鲤红包抽奖")
                 if redpocket.remain_count == 0:
