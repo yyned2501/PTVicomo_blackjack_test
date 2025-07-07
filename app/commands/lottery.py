@@ -301,7 +301,7 @@ async def lotteryinfo(client: Client, message: Message):
 
 @Client.on_message(filters.private & filters.command("fakelottery"))
 @auto_delete_message(60)
-async def lotteryinfo(client: Client, message: Message):
+async def fakelottery(client: Client, message: Message):
     async with ASSession() as session:
         async with session.begin():
             user = await Users.get_user_from_tgmessage(message)
@@ -313,7 +313,7 @@ async def lotteryinfo(client: Client, message: Message):
 
 @Client.on_message(filters.chat(GROUP_ID) & filters.command("lotteryhistory"))
 @auto_delete_message(60)
-async def lotteryinfo(client: Client, message: Message):
+async def lotteryhistory(client: Client, message: Message):
     async with ASSession() as session:
         async with session.begin():
             query = (
