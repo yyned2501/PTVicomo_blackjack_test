@@ -285,7 +285,7 @@ async def draw_redpocket_callback(client: Client, callback_query: CallbackQuery)
                 if redpocket._pocket_type == 1 and len(redpocket.claimed) > 0:
                     await callback_query.answer(f"提前开奖锦鲤红包")
                     await callback_query.message.delete()
-                    return await draw_luckypocket(client, redpocket)
+                    return await callback_query.edit_message_reply_markup()
                 else:
                     await callback_query.answer(
                         f"回收红包 {redpocket.content} 回收象草 {redpocket.remain_bonus}"
@@ -299,4 +299,4 @@ async def draw_redpocket_callback(client: Client, callback_query: CallbackQuery)
                         )
                     )
                     await session.delete(redpocket)
-                    return await callback_query.message.delete()
+                    return await callback_query.edit_message_reply_markup()
