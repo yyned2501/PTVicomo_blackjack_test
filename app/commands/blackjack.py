@@ -23,7 +23,7 @@ from config import GROUP_ID
 
 
 TAX_RATE = 0.01
-MAX_BONUS = 10000
+MAX_BONUS = 100000
 logger = logging.getLogger("main")
 
 
