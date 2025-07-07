@@ -326,8 +326,8 @@ async def lotteryhistory(client: Client, message: Message):
             ret = "历史20次记录:"
             for history in result.scalars():
                 number = history.number
-                ret += f"\n 第[{history.id}期]{history.number} : " + "".join(
-                    [f"{i}" if str(i) in number else "  " for i in range(10)]
+                ret += f"\n{to_emoji_number(history.number)} : " + "".join(
+                    [f"{i}" if to_emoji_number(i) in number else "  " for i in range(10)]
                 )
             return await message.reply(ret)
 
@@ -429,7 +429,20 @@ async def get_lottery_pool(user: Users = None):
         win = 0
         tax = 0
     return bet, win, tax
-
+    
+def to_emoji_number(n: int) -> str:
+    """
+    将一个整数转换为对应的带圈数字 Emoji 字符串 (例如 ①, ②, ⑩)。
+    """
+    if not isinstance(n, int):
+        return "❓"
+    if n == 10:
+        return "⑩"
+    emoji_map = {
+        '0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④',
+        '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
+    }
+    return "".join(emoji_map.get(digit, digit) for digit in str(n))
 
 async def safe_draw_lottery():
     data_str = redis_cli.get("lottery")
