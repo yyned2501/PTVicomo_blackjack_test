@@ -17,3 +17,9 @@ console_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 console_handler.setLevel(logging.WARNING)
 logger.addHandler(console_handler)
+
+if not logging.getLogger().hasHandlers():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
