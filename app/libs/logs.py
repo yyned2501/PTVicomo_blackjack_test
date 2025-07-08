@@ -1,10 +1,8 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-
-formatter = logging.Formatter(
-    "[%(levelname)s] %(asctime)s - %(filename)s:%(lineno)d - %(message)s"
-)
+format_str = "[%(levelname)s] %(asctime)s - %(filename)s:%(lineno)d - %(message)s"
+formatter = logging.Formatter(format_str)
 
 
 logger = logging.getLogger("main")
@@ -23,5 +21,5 @@ logger.addHandler(console_handler)
 if not logging.getLogger().hasHandlers():
     logging.basicConfig(
         level=logging.INFO,
-        format=formatter,
+        format=format_str,
     )
