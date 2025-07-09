@@ -1,13 +1,21 @@
-from pyrogram import filters, Client
-from pyrogram.types import Message
 import random
+from datetime import datetime
 
 from sqlalchemy import select
+from pyrogram import filters, Client
+from pyrogram.types import Message
 
 from app.libs.decorators import auto_delete_message
 from app.models import ASSession
 from app.models.nexusphp import BotBinds, TgMessages, UserRoles, Users
 from config import GROUP_ID, GIFT_RATE
+
+
+def time_difference_in_seconds(date_time):
+    current_time = datetime.now()
+    specified_time = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
+    time_diff = (current_time - specified_time).total_seconds()
+    return time_diff
 
 
 @Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("water"))
@@ -60,9 +68,9 @@ async def water(client: Client, message: Message):
             return await message.reply(ret)
 
 
-@Client.on_message(filters.chat(GROUP_ID) & ~filters.bot, group=1)
+@Client.on_message(filters.chat(GROUP_ID) & filters.text & ~filters.bot, group=1)
 @auto_delete_message(delete_from_message=False)
-async def bonus(client: Client, message: Message):
+async def message_count(client: Client, message: Message):
     if message.content.startswith(("/", "+")):
         return
     r = random.random()
@@ -78,3 +86,16 @@ async def bonus(client: Client, message: Message):
                         bonus = 10000
                     await user.addbonus(bonus, "水群随机奖励")
                     return await message.reply(f"你的发言感动了岛神，赐予你{bonus}象草")
+
+
+@Client.on_deleted_messages(
+    filters.chat(GROUP_ID) & filters.text & ~filters.bot, group=1
+)
+async def message_discount(client: Client, message: Message):
+    if message.content.startswith(("/", "+")):
+        return
+    if time_difference_in_seconds(message.date) < 3600:
+        async with ASSession() as session:
+            async with session.begin():
+                tgmess = await TgMessages.get_tgmess_from_tgmessage(message)
+                tgmess.send_message(-1)

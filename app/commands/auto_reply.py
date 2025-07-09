@@ -106,6 +106,7 @@ async def hint_remove(client: Client, message: Message):
 @Client.on_message(
     filters.chat(GROUP_ID)
     & filters.text
+    & ~filters.bot
     & filters.create(lambda _, __, ___: len(hint.hints) > 0)
     & filters.create(
         lambda _, __, message: (

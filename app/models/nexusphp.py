@@ -428,10 +428,10 @@ class TgMessages(Base):
                 session.add(tgmess)
             return tgmess
 
-    def send_message(self):
-        self.day_count += 1
-        self.month_count += 1
-        self.total_count += 1
+    def send_message(self, count=1):
+        self.day_count += count
+        self.month_count += count
+        self.total_count += count
 
     def clean_day(self):
         self.day_count = 0
