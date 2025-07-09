@@ -6,8 +6,9 @@ from app import Client
 
 def s_delete_message(message: Message, sleep_time=0):
     async def delayed_delete(message: Message, sleep_time=0):
-        await asyncio.sleep(sleep_time)
-        await message.delete()
+        if message:
+            await asyncio.sleep(sleep_time)
+            await message.delete()
 
     return asyncio.create_task(delayed_delete(message, sleep_time))
 
