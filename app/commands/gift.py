@@ -103,23 +103,21 @@ async def message_count(client: Client, message: Message):
     group=1,
 )
 async def message_discount(client: Client, messages: list[Message]):
-    for message in messages:
-        logger.info(message)
-        # 检查消息文本
-        if message.text and message.text.startswith(("/", "+")):
-            continue
-
-        # 计算时间差
-        time_diff = time_difference_in_seconds(message.date)
-        if time_diff < 0 or time_diff > 3600:
-            continue
-
-        # 数据库操作
-        try:
-            async with ASSession() as session:
-                async with session.begin():
+    async with ASSession() as session:
+        async with session.begin():
+            for message in messages:
+                logger.info(message)
+                # 检查消息文本
+                if message.text and message.text.startswith(("/", "+")):
+                    continue
+                # 计算时间差
+                time_diff = time_difference_in_seconds(message.date)
+                if time_diff < 0 or time_diff > 3600:
+                    continue
+                # 数据库操作
+                try:
                     tgmess = await TgMessages.get_tgmess_from_tgmessage(message)
                     if tgmess:
                         tgmess.send_message(-1)
-        except Exception as e:
-            logger.error(f"处理消息 {message.id} 失败: {e}")
+                except Exception as e:
+                    logger.error(f"处理消息 {message.id} 失败: {e}")
