@@ -1,7 +1,7 @@
 import os
 
 import redis
-from pyrogram import idle
+from pyrogram import idle, Client
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -15,7 +15,8 @@ from config import (
     REDIS_DB,
     GROUP_ID,
 )
-from app.custom_client import Client
+
+# from app.custom_client import Client
 
 os.environ["TZ"] = "Asia/Shanghai"
 

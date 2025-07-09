@@ -1,10 +1,10 @@
 import sys
-from pyrogram import filters
+from pyrogram import filters, Client
 from pyrogram.types import Message
 import subprocess
 
 from config import GROUP_ID, API_ID, API_HASH, BOT_TOKEN
-from app.custom_client import Client
+# from app.custom_client import Client
 
 app = Client(
     "su_tgbot",
