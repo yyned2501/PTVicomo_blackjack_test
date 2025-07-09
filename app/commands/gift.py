@@ -68,7 +68,13 @@ async def water(client: Client, message: Message):
             return await message.reply(ret)
 
 
-@Client.on_message(filters.chat(GROUP_ID) & filters.text & ~filters.bot, group=1)
+@Client.on_message(
+    filters.chat(GROUP_ID)
+    & filters.text
+    & ~filters.bot
+    & ~filters.regex(r"(\d{3})\s*\*\s*([\d,]+)"),
+    group=1,
+)
 @auto_delete_message(delete_from_message=False)
 async def message_count(client: Client, message: Message):
     if message.content.startswith(("/", "+")):
@@ -89,7 +95,11 @@ async def message_count(client: Client, message: Message):
 
 
 @Client.on_deleted_messages(
-    filters.chat(GROUP_ID) & filters.text & ~filters.bot, group=1
+    filters.chat(GROUP_ID)
+    & filters.text
+    & ~filters.bot
+    & ~filters.regex(r"(\d{3})\s*\*\s*([\d,]+)"),
+    group=1,
 )
 async def message_discount(client: Client, message: Message):
     if message.content.startswith(("/", "+")):

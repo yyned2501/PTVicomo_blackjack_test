@@ -429,20 +429,7 @@ async def get_lottery_pool(user: Users = None):
         win = 0
         tax = 0
     return bet, win, tax
-    
-def to_emoji_number(n: int) -> str:
-    """
-    将一个整数转换为对应的带圈数字 Emoji 字符串 (例如 ①, ②, ⑩)。
-    """
-    if not isinstance(n, int):
-        return "❓"
-    if n == 10:
-        return "⑩"
-    emoji_map = {
-        '0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④',
-        '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
-    }
-    return "".join(emoji_map.get(digit, digit) for digit in str(n))
+
 
 async def safe_draw_lottery():
     data_str = redis_cli.get("lottery")

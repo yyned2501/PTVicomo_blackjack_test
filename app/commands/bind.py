@@ -54,6 +54,8 @@ async def group_bind(client: Client, message: Message):
             ]
         ),
     )
+
+
 @Client.on_message(filters.chat(GROUP_ID[1]) & filters.command("bindid"))
 @auto_delete_message()
 async def bind_id(client: Client, message: Message):
@@ -69,16 +71,21 @@ async def bind_id(client: Client, message: Message):
             user = (
                 await session.execute(select(Users).filter(Users.id == userid))
             ).scalar_one_or_none()
-            if user.bot_bind:
-                user.bot_bind.uid = user.id
-                user.bot_bind.telegram_account_id = tg_id
+            if user:
+                if user.bot_bind:
+                    user.bot_bind.uid = user.id
+                    user.bot_bind.telegram_account_id = tg_id
+                else:
+                    user.bot_bind = BotBinds(
+                        uid=user.id,
+                        telegram_account_id=tg_id,
+                        telegram_account_username="",
+                    )
+                    session.add(user.bot_bind)
             else:
-                user.bot_bind = BotBinds(
-                    uid=user.id,
-                    telegram_account_id=tg_id,
-                    telegram_account_username="",
-                )
-                session.add(user.bot_bind)
+                return await message.reply(f"没有查询到用户{userid}")
+        await message.reply(f"绑定用户{user.username}成功")
+
 
 @Client.on_message(filters.command("unbind"))
 @auto_delete_message()
