@@ -35,13 +35,7 @@ app: Client = None
 
 redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
-basic_plugins = [
-    "bind",
-    "info",
-    "login",
-    "cancel2fa",
-    "auto_reply",
-]
+basic_plugins = ["bind", "info", "login", "cancel2fa", "auto_reply", "transbonus"]
 
 
 def get_app():
