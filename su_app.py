@@ -4,6 +4,7 @@ from pyrogram.types import Message
 import subprocess
 
 from config import GROUP_ID, API_ID, API_HASH, BOT_TOKEN
+
 # from app.custom_client import Client
 
 app = Client(
@@ -61,31 +62,30 @@ def git_pull():
         return False, str(e)
 
 
-@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("restart_basic"))
+@app.on_message(
+    filters.chat(GROUP_ID[1])
+    & filters.command(
+        [
+            "start_basic",
+            "restart_basic",
+            "stop_basic",
+            "start_extra",
+            "restart_extra",
+            "stop_extra",
+        ]
+    )
+)
 async def restart_basic(client: Client, message: Message):
-    """
-    重启 basic_app 程序
-    """
-    ok, output = restart_program("basic")
+    command = message.command[0]
+    func, gram = command.split("_")
+    ok, output = send_command(["supervisorctl", func, gram])
     if ok:
-        return await message.reply("basic_app 重启成功！\n" + output)
+        return await message.reply(f"{command} 成功！\n" + output)
     else:
-        return await message.reply("basic_app 重启失败！\n" + output)
+        return await message.reply(f"{command} 失败！\n" + output)
 
 
-@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("restart_extra"))
-async def restart_extra(client: Client, message: Message):
-    """
-    重启 ex_app 程序
-    """
-    ok, output = restart_program("extra")
-    if ok:
-        return await message.reply("ex_app 重启成功！\n" + output)
-    else:
-        return await message.reply("ex_app 重启失败！\n" + output)
-
-
-@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("restart_all"))
+@app.on_message(filters.chat(GROUP_ID[1]) & filters.command("reload"))
 async def restart_all(client: Client, message: Message):
     """
     利用supervisor的重启机制类重启

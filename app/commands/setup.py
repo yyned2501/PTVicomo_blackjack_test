@@ -111,11 +111,35 @@ BOT_COMMANDS: list[tuple[BotCommand, list[CommandScope]]] = [
         [CommandScope.ADMIN_CHAT],
     ),
     (
-        BotCommand("restart_all", "重启bot"),
+        BotCommand("reload", "重启所有bot"),
         [CommandScope.ADMIN_CHAT],
     ),
     (
         BotCommand("update", "更新代码"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("start_basic", "启动基础服务"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("restart_basic", "重启基础服务"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("stop_basic", "停止基础服务"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("start_extra", "启动扩展服务"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("restart_extra", "重启扩展服务"),
+        [CommandScope.ADMIN_CHAT],
+    ),
+    (
+        BotCommand("stop_extra", "停止扩展服务"),
         [CommandScope.ADMIN_CHAT],
     ),
 ]
