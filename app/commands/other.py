@@ -9,4 +9,5 @@ async def channel_message(_, __, m: Message):
 
 @Client.on_message(filters.create(channel_message) & filters.regex(r"^新的官种"))
 async def auto_unpin(client: Client, message: Message):
-    await message.unpin()
+    if message.pinned:
+        await message.unpin()
