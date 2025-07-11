@@ -218,7 +218,7 @@ blackjackrank_reply_markup = InlineKeyboardMarkup(
 async def blackjack(client: Client, message: Message):
     try:
         bonus = int(message.command[1])
-        if bonus > MAX_BONUS:
+        if bonus > MAX_BONUS or bonus < 0:
             raise Exception
     except Exception as e:
         reply_message = await message.reply(
