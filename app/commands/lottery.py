@@ -77,11 +77,11 @@ def get_fake_list():
             bonus = lottery_numbers_tuple[1]
             if len(number_all) > 3:
                 if check_lottery(lottery_numbers, number_all) > 2:
-                    if bonus > data["bonus_pool"] / 10:
+                    if bonus > data["bonus_pool"] / 300:
                         safe_remove_in_list(number_all, lottery_numbers, 2)
-                    elif bonus > data["bonus_pool"] / 300:
+                    elif bonus > data["bonus_pool"] / 10000:
                         safe_remove_in_list(number_all, lottery_numbers, 1)
-                    elif random.random() < 0.3:
+                    elif random.random() < 0.8:
                         safe_remove_in_list(number_all, lottery_numbers, 1)
                 logger.info(str(number_all))
         return number_all
