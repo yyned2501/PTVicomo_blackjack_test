@@ -58,6 +58,7 @@ def get_fake_list():
     logger.info(data_str)
     if data_str:
         data: dict = json.loads(data_str)
+        logger.info(data)
         bet_numbers = {}
         sum_bonus = 0
         for tgid in data["users"]:
