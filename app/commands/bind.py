@@ -122,7 +122,7 @@ async def binduser(client: Client, message: Message):
             if not user:
                 return await message.reply(BINDUSER_FAIL)
             mail = Mail(SENDER_EMAIL, SENDER_PASSWORD)
-            code = await mail(user.email)
+            code = await mail.send_verification_email(user.email)
             if code:
                 redis_cli.set(
                     f"binduser:{message.from_user.id}",
