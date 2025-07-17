@@ -33,7 +33,7 @@ class Mail:
         <body>
             <h2>尊敬的用户：</h2>
             <p>您的验证码是：<strong>{verification_code}</strong></p>
-            <p>请在10分钟内使用该验证码完成验证。</p>
+            <p>请在2分钟内使用该验证码完成验证。</p>
             <p>如非本人操作，请忽略此邮件。</p>
             <hr>
             <p style="color:gray;">此为系统邮件，请勿直接回复。</p>
@@ -48,7 +48,7 @@ class Mail:
         message["Subject"] = Header(subject, "utf-8")
         try:
             async with SMTP(
-                hostname=self.SMTP_SERVER, port=self.SMTP_PORT, use_tls=True
+                hostname=self.SMTP_SERVER, port=self.SMTP_PORT, use_tls=False
             ) as smtp_client:
                 await smtp_client.login(self.SENDER_EMAIL, self.SENDER_PASSWORD)
                 await smtp_client.send_message(message)
