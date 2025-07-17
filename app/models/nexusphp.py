@@ -222,6 +222,16 @@ class Users(Base):
             if user:
                 return user
 
+    @classmethod
+    async def get_user_by_username(cls, username: str):
+        session = ASSession()
+        async with session.begin():
+            user = (
+                await session.execute(select(cls).filter(cls.username == username))
+            ).scalar_one_or_none()
+            if user:
+                return user
+
     @staticmethod
     def get_tg_name(message: Message):
         if not message.from_user:

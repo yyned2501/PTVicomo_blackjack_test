@@ -1,3 +1,4 @@
+import json
 from sqlalchemy import select
 from pyrogram import filters, Client
 from pyrogram.types import (
@@ -9,8 +10,9 @@ from pyrogram.types.messages_and_media import Message
 from app.libs.decorators import auto_delete_message
 from app.models import ASSession
 from app.models.nexusphp import Users, BotBinds
-from config import GROUP_ID
-
+from app import redis_cli
+from config import GROUP_ID, SENDER_EMAIL, SENDER_PASSWORD
+from app.libs.mail import Mail
 
 BIND_REQUIRE = "请输入`/bind passkey`绑定账号"
 BIND_SUCCESS = "绑定成功"
@@ -19,6 +21,11 @@ BINDED = "您已经绑定了"
 BIND_PERMITTION = "请勿在群聊中绑定账号"
 UNBIND_SUCCESS = "解绑成功"
 UNBINDED = "您还没有绑定账号"
+BINDUSER_REQUIRE = "请输入`/binduser 用户名`绑定账号"
+BINDUSER_FAIL = "绑定失败，请输入正确的用户名"
+BINDUSER_SUCCESS = (
+    "验证码已发送至您绑定的邮箱，请在2分钟内输入验证码\n如未收到请检查垃圾箱"
+)
 
 
 @Client.on_message(filters.private & filters.command("bind"))
@@ -98,3 +105,57 @@ async def unbind(client: Client, message: Message):
                 await message.reply(UNBIND_SUCCESS)
             else:
                 await message.reply(UNBINDED)
+
+
+@Client.on_message(filters.private & filters.command("binduser"))
+@auto_delete_message(delay=120)
+async def binduser(client: Client, message: Message):
+    if len(message.command) == 1:
+        return await message.reply(BINDUSER_REQUIRE)
+    username = message.command[1]
+    async with ASSession() as session:
+        async with session.begin():
+            user = await Users.get_user_from_tgmessage(message)
+            if user:
+                return await message.reply(BINDED)
+            user = await Users.get_user_by_username(username)
+            if not user:
+                return await message.reply(BINDUSER_FAIL)
+            mail = Mail(SENDER_EMAIL, SENDER_PASSWORD)
+            code = await mail(user.email)
+            if code:
+                redis_cli.set(
+                    f"binduser:{message.from_user.id}",
+                    json.dumps({"username": user.username, "code": code}),
+                )
+                return await message.reply(BINDUSER_SUCCESS)
+            return message.reply("邮件发送失败，请稍后重试")
+
+
+async def code_filter(_, __, message: Message):
+    return message.text == json.loads(
+        redis_cli.get(f"binduser:{message.from_user.id}")
+    ).get("code", "")
+
+
+@Client.on_message(filters.private & filters.create(code_filter))
+@auto_delete_message(delay=120)
+async def binduser_code(client: Client, message: Message):
+    data = json.loads(redis_cli.get(f"binduser:{message.from_user.id}"))
+    username = data.get("username", None)
+    tg_id = message.from_user.id
+    async with ASSession() as session:
+        async with session.begin():
+            user = await Users.get_user_by_username(username)
+            if user:
+                if user.bot_bind:
+                    user.bot_bind.uid = user.id
+                    user.bot_bind.telegram_account_id = tg_id
+                else:
+                    user.bot_bind = BotBinds(
+                        uid=user.id,
+                        telegram_account_id=tg_id,
+                        telegram_account_username="",
+                    )
+                    session.add(user.bot_bind)
+            return await message.reply("绑定成功")
