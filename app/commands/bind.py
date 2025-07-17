@@ -129,7 +129,7 @@ async def binduser(client: Client, message: Message):
                     json.dumps({"username": user.username, "code": code}),
                 )
                 return await message.reply(BINDUSER_SUCCESS)
-            return message.reply("邮件发送失败，请稍后重试")
+            return await message.reply("邮件发送失败，请稍后重试")
 
 
 async def code_filter(_, __, message: Message):
