@@ -137,19 +137,21 @@ async def binduser(client: Client, message: Message):
 
 async def code_filter(_, __, message: Message):
     # 检查尝试次数
-    attempt_key = f"bind_attempts:{message.from_user.id}"
-    if int(redis_cli.get(attempt_key) or 0) >= 5:
-        return False
-    
+    MAX_COUNT = 5
     redis_data = redis_cli.get(f"binduser:{message.from_user.id}")
     if redis_data:
+        attempt_key = f"bind_attempts:{message.from_user.id}"
+        if int(redis_cli.get(attempt_key) or 0) >= MAX_COUNT:
+            await message.reply(f"您已输入错误超过{MAX_COUNT}次，请稍后重试")
+            return False
         data = json.loads(redis_data)
         if message.text == data.get("code", ""):
             redis_cli.delete(attempt_key)  # 验证成功清除计数器
             return True
         # 验证失败增加计数器
-        redis_cli.incr(attempt_key)
+        count = redis_cli.incr(attempt_key)
         redis_cli.expire(attempt_key, 300)  # 5分钟过期
+        await message.reply(f"输入错误[{count}/{MAX_COUNT}]次")
     return False
 
 
