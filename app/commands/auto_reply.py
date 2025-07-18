@@ -26,7 +26,11 @@ class Hint:
         """
         从redis加载所有关键词及其回复内容到内存字典。
         """
-        keywords = redis_cli.keys("hint*")
+        keywords = []
+        for key in redis_cli.scan_iter("hint*"):  # 使用scan_iter替代keys避免性能问题
+            keywords.append(key)
+        if not keywords:
+            return
         for keyword in keywords:
             _keyword = keyword.decode("utf-8").split(":")[1]  # 提取关键词
             logger.debug(f"从redis加载关键词: {keyword}")
@@ -110,7 +114,13 @@ async def hint_remove(client: Client, message: Message):
     & filters.create(lambda _, __, ___: len(hint.hints) > 0)
     & filters.create(
         lambda _, __, message: (
-            any(k in message.text for k in hint.hints.keys()) if message else False
+            any(
+                i.lower() in message.text.lower()
+                for k in hint.hints.keys()
+                for i in k.split("|")
+            )
+            if message and message.text
+            else False
         )
     )
 )
@@ -120,7 +130,8 @@ async def auto_reply(client: Client, message: Message):
     监听普通群组消息，检测是否包含关键词，自动回复对应内容。
     """
     # logger.info(f"监听到内容: {message.text}，检测关键词...")
-    for keyword, reply in hint.hints.items():
-        if keyword in message.text:
-            # logger.debug(f"检测到关键词: {keyword}，回复内容: {reply}")
-            return await message.reply(reply)
+    for _keyword, reply in hint.hints.items():
+        for keyword in _keyword.split("|"):
+            if keyword in message.text:
+                # logger.debug(f"检测到关键词: {keyword}，回复内容: {reply}")
+                return await message.reply(reply)
