@@ -119,8 +119,8 @@ async def auto_reply(client: Client, message: Message):
     """
     监听普通群组消息，检测是否包含关键词，自动回复对应内容。
     """
-    logger.info(f"监听到内容: {message.text}，检测关键词...")
+    # logger.info(f"监听到内容: {message.text}，检测关键词...")
     for keyword, reply in hint.hints.items():
         if keyword in message.text:
-            logger.debug(f"检测到关键词: {keyword}，回复内容: {reply}")
+            # logger.debug(f"检测到关键词: {keyword}，回复内容: {reply}")
             return await message.reply(reply)

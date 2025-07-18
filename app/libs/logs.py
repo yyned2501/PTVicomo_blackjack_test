@@ -18,8 +18,8 @@ logger.addHandler(file_handler)
 console_handler.setLevel(logging.WARNING)
 logger.addHandler(console_handler)
 
-if not logging.getLogger().hasHandlers():
-    logging.basicConfig(
-        level=logging.INFO,
-        format=format_str,
-    )
+# if not logging.getLogger().hasHandlers():
+#     logging.basicConfig(
+#         level=logging.INFO,
+#         format=format_str,
+#     )
