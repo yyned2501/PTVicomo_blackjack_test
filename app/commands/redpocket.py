@@ -32,7 +32,8 @@ CREATE_REDPOCKET = """```{redpocket.pocket_type}
 饲养员: {redpocket.from_uname}
 内容: {redpocket.content}
 象草: {redpocket.remain_bonus}/{redpocket.bonus}
-数量: {redpocket.remain_count}/{redpocket.count}```"""
+数量: {redpocket.remain_count}/{redpocket.count}
+{claimed_users}```"""
 TYPES = {"redpocket": "拼手气", "luckypocket": "锦鲤"}
 ACTION = "redpocket"
 
@@ -168,18 +169,32 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                 )
                 await callback_query.answer(f"成功领取红包，增加{bonus}象草")
                 if redpocket.remain_count == 0:
+                    claimed_users = "\n".join([f"领取人: {claimed.tg_username}" for claimed in redpocket.claimed])
+                    await callback_query.edit_message_text(
+                        CREATE_REDPOCKET.format(
+                            redpocket=redpocket,
+                            claimed_users=claimed_users
+                        ) + "\n\n**红包已领完**"
+                    )
                     await session.execute(
                         delete(RedpocketClaimed).where(
                             RedpocketClaimed.redpocket_id == redpocket.id
                         )
                     )
                     await session.delete(redpocket)
-                    return await callback_query.edit_message_reply_markup()
+                    return
             elif redpocket._pocket_type == 1:
                 await callback_query.answer(f"成功参加锦鲤红包抽奖")
                 if redpocket.remain_count == 0:
-                    await callback_query.message.delete()
-                    return await draw_luckypocket(client, redpocket)
+                    winner = await draw_luckypocket(client, redpocket)
+                    claimed_users = "\n".join([f"参与人: {claimed.tg_username}" for claimed in redpocket.claimed])
+                    await callback_query.edit_message_text(
+                        CREATE_REDPOCKET.format(
+                            redpocket=redpocket,
+                            claimed_users=f"{claimed_users}\n锦鲤获奖人: {winner}"
+                        ) + "\n\n**红包已开奖**"
+                    )
+                    return
             await callback_query.edit_message_text(
                 CREATE_REDPOCKET.format(redpocket=redpocket),
                 reply_markup=create_keyboard(redpocket),
@@ -195,12 +210,12 @@ async def draw_luckypocket(client: Client, redpocket: Redpocket):
         delete(RedpocketClaimed).where(RedpocketClaimed.redpocket_id == redpocket.id)
     )
     reply_user = f"[{user.bot_bind.telegram_account_username}](tg://user?id={tg_id})"
-    message = await client.send_message(
+    await client.send_message(
         GROUP_ID[0],
-        f"恭喜锦鲤 {reply_user} \n获得锦鲤红包 {redpocket.content} 的奖励\n成功获得 {bonus} 象草",
+        f"恭喜 {reply_user} 成为锦鲤红包 {redpocket.content} 的获奖者！",
     )
     await session.delete(redpocket)
-    return message
+    return reply_user
 
 
 @app.on_message(filters.chat(GROUP_ID) & filters.command("listredpocket"))
@@ -290,6 +305,13 @@ async def draw_redpocket_callback(client: Client, callback_query: CallbackQuery)
                     await callback_query.answer(
                         f"回收红包 {redpocket.content} 回收象草 {redpocket.remain_bonus}"
                     )
+                    claimed_users = "\n".join([f"领取人: {claimed.tg_username}" for claimed in redpocket.claimed]) if redpocket.claimed else "无人领取"
+                    await callback_query.edit_message_text(
+                        CREATE_REDPOCKET.format(
+                            redpocket=redpocket,
+                            claimed_users=claimed_users
+                        ) + "\n\n**红包已回收**"
+                    )
                     await user.addbonus(
                         redpocket.remain_bonus, f"回收红包 {redpocket.content}"
                     )
@@ -299,4 +321,4 @@ async def draw_redpocket_callback(client: Client, callback_query: CallbackQuery)
                         )
                     )
                     await session.delete(redpocket)
-                    return await callback_query.edit_message_reply_markup()
+                    return
