@@ -115,7 +115,7 @@ async def create_redpocket(client: Client, message: Message, type_: int):
                 "",
                 type_,
             )
-            message_str = CREATE_REDPOCKET.format(redpocket=redpocket)
+            message_str = CREATE_REDPOCKET.format(redpocket=redpocket, claimed_users="")
             bonus = await qfz_bonus(client, user, bonus)
             await user.addbonus(-bonus, f"发红包{content}")
             reply_message = await message.reply(
@@ -169,12 +169,17 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                 )
                 await callback_query.answer(f"成功领取红包，增加{bonus}象草")
                 if redpocket.remain_count == 0:
-                    claimed_users = "\n".join([f"领取人: {claimed.tg_username}" for claimed in redpocket.claimed])
+                    claimed_users = "\n".join(
+                        [
+                            f"领取人: {claimed.tg_username}"
+                            for claimed in redpocket.claimed
+                        ]
+                    )
                     await callback_query.edit_message_text(
                         CREATE_REDPOCKET.format(
-                            redpocket=redpocket,
-                            claimed_users=claimed_users
-                        ) + "\n\n**红包已领完**"
+                            redpocket=redpocket, claimed_users=claimed_users
+                        )
+                        + "\n\n**红包已领完**"
                     )
                     await session.execute(
                         delete(RedpocketClaimed).where(
@@ -187,12 +192,18 @@ async def redpocket_callback(client: Client, callback_query: CallbackQuery):
                 await callback_query.answer(f"成功参加锦鲤红包抽奖")
                 if redpocket.remain_count == 0:
                     winner = await draw_luckypocket(client, redpocket)
-                    claimed_users = "\n".join([f"参与人: {claimed.tg_username}" for claimed in redpocket.claimed])
+                    claimed_users = "\n".join(
+                        [
+                            f"参与人: {claimed.tg_username}"
+                            for claimed in redpocket.claimed
+                        ]
+                    )
                     await callback_query.edit_message_text(
                         CREATE_REDPOCKET.format(
                             redpocket=redpocket,
-                            claimed_users=f"{claimed_users}\n锦鲤获奖人: {winner}"
-                        ) + "\n\n**红包已开奖**"
+                            claimed_users=f"{claimed_users}\n锦鲤获奖人: {winner}",
+                        )
+                        + "\n\n**红包已开奖**"
                     )
                     return
             await callback_query.edit_message_text(
@@ -305,12 +316,21 @@ async def draw_redpocket_callback(client: Client, callback_query: CallbackQuery)
                     await callback_query.answer(
                         f"回收红包 {redpocket.content} 回收象草 {redpocket.remain_bonus}"
                     )
-                    claimed_users = "\n".join([f"领取人: {claimed.tg_username}" for claimed in redpocket.claimed]) if redpocket.claimed else "无人领取"
+                    claimed_users = (
+                        "\n".join(
+                            [
+                                f"领取人: {claimed.tg_username}"
+                                for claimed in redpocket.claimed
+                            ]
+                        )
+                        if redpocket.claimed
+                        else "无人领取"
+                    )
                     await callback_query.edit_message_text(
                         CREATE_REDPOCKET.format(
-                            redpocket=redpocket,
-                            claimed_users=claimed_users
-                        ) + "\n\n**红包已回收**"
+                            redpocket=redpocket, claimed_users=claimed_users
+                        )
+                        + "\n\n**红包已回收**"
                     )
                     await user.addbonus(
                         redpocket.remain_bonus, f"回收红包 {redpocket.content}"
