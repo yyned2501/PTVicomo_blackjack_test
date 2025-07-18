@@ -5,11 +5,12 @@ from email.mime.text import MIMEText
 from email.header import Header
 from aiosmtplib import SMTP
 import logging
-
+import certifi
+import ssl
 
 class Mail:
-    SMTP_SERVER = "smtp.qq.com"  # SMTP服务器地址
-    SMTP_PORT = 465  # SMTP服务器端口（SSL）
+    SMTP_SERVER = "smtp.qq.com"
+    SMTP_PORT = 465
 
     def __init__(self, sender_email, sender_password):
         self.SENDER_EMAIL = sender_email
@@ -25,7 +26,6 @@ class Mail:
         """异步发送验证码邮件"""
         # 生成验证码
         verification_code = self.generate_verification_code()
-
         # 邮件内容
         subject = "您的验证码"
         content = f"""
@@ -40,15 +40,17 @@ class Mail:
         </body>
         </html>
         """
-
         # 构造邮件
         message = MIMEText(content, "html", "utf-8")
         message["From"] = formataddr(("系统管理员", self.SENDER_EMAIL))
         message["To"] = receiver_email
         message["Subject"] = Header(subject, "utf-8")
+
         try:
+            # 创建 SSL 上下文并加载 certifi 的证书
+            ssl_context = ssl.create_default_context(cafile=certifi.where())
             async with SMTP(
-                hostname=self.SMTP_SERVER, port=self.SMTP_PORT, use_tls=False
+                hostname=self.SMTP_SERVER, port=self.SMTP_PORT, use_tls=True, tls_context=ssl_context
             ) as smtp_client:
                 await smtp_client.login(self.SENDER_EMAIL, self.SENDER_PASSWORD)
                 await smtp_client.send_message(message)
