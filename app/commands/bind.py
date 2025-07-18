@@ -113,6 +113,8 @@ async def binduser(client: Client, message: Message):
     if len(message.command) == 1:
         return await message.reply(BINDUSER_REQUIRE)
     username = message.command[1]
+    if redis_cli.get(f"binduser:{message.from_user.id}"):
+        return await message.reply("您已经发送了验证码，请在2分钟后重试")
     async with ASSession() as session:
         async with session.begin():
             user = await Users.get_user_from_tgmessage(message)
@@ -127,6 +129,7 @@ async def binduser(client: Client, message: Message):
                 redis_cli.set(
                     f"binduser:{message.from_user.id}",
                     json.dumps({"username": user.username, "code": code}),
+                    ex=120,
                 )
                 return await message.reply(BINDUSER_SUCCESS)
             return await message.reply("邮件发送失败，请稍后重试")
@@ -158,4 +161,5 @@ async def binduser_code(client: Client, message: Message):
                         telegram_account_username="",
                     )
                     session.add(user.bot_bind)
+            redis_cli.delete(f"binduser:{message.from_user.id}")
             return await message.reply("绑定成功")
