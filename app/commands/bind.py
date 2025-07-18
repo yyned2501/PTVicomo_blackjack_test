@@ -136,16 +136,33 @@ async def binduser(client: Client, message: Message):
 
 
 async def code_filter(_, __, message: Message):
-    return message.text == json.loads(
-        redis_cli.get(f"binduser:{message.from_user.id}")
-    ).get("code", "")
+    # 检查尝试次数
+    attempt_key = f"bind_attempts:{message.from_user.id}"
+    if int(redis_cli.get(attempt_key) or 0) >= 5:
+        return False
+    
+    redis_data = redis_cli.get(f"binduser:{message.from_user.id}")
+    if redis_data:
+        data = json.loads(redis_data)
+        if message.text == data.get("code", ""):
+            redis_cli.delete(attempt_key)  # 验证成功清除计数器
+            return True
+        # 验证失败增加计数器
+        redis_cli.incr(attempt_key)
+        redis_cli.expire(attempt_key, 300)  # 5分钟过期
+    return False
 
 
 @Client.on_message(filters.private & filters.create(code_filter))
 @auto_delete_message(delay=120)
 async def binduser_code(client: Client, message: Message):
-    data = json.loads(redis_cli.get(f"binduser:{message.from_user.id}"))
+    redis_data = redis_cli.get(f"binduser:{message.from_user.id}")
+    if not redis_data:
+        return await message.reply("验证码已过期，请重新获取")
+    data = json.loads(redis_data)
     username = data.get("username", None)
+    if not username:
+        return await message.reply("验证数据无效，请重新获取验证码")
     tg_id = message.from_user.id
     async with ASSession() as session:
         async with session.begin():
