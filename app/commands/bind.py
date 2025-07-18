@@ -26,7 +26,7 @@ BINDUSER_FAIL = "绑定失败，请输入正确的用户名"
 BINDUSER_SUCCESS = (
     "验证码已发送至您绑定的邮箱，请在2分钟内输入验证码\n如未收到请检查垃圾箱"
 )
-
+EXPIRE_SEC = 300
 
 @Client.on_message(filters.private & filters.command("bind"))
 @auto_delete_message(delete_from_message_immediately=True)
@@ -108,7 +108,7 @@ async def unbind(client: Client, message: Message):
 
 
 @Client.on_message(filters.private & filters.command("binduser"))
-@auto_delete_message(delay=120)
+@auto_delete_message(delay=EXPIRE_SEC)
 async def binduser(client: Client, message: Message):
     if len(message.command) == 1:
         return await message.reply(BINDUSER_REQUIRE)
@@ -129,7 +129,7 @@ async def binduser(client: Client, message: Message):
                 redis_cli.set(
                     f"binduser:{message.from_user.id}",
                     json.dumps({"username": user.username, "code": code}),
-                    ex=120,
+                    ex=EXPIRE_SEC,
                 )
                 return await message.reply(BINDUSER_SUCCESS)
             return await message.reply("邮件发送失败，请稍后重试")
@@ -150,13 +150,13 @@ async def code_filter(_, __, message: Message):
             return True
         # 验证失败增加计数器
         count = redis_cli.incr(attempt_key)
-        redis_cli.expire(attempt_key, 300)  # 5分钟过期
+        redis_cli.expire(attempt_key, EXPIRE_SEC)  # 5分钟过期
         await message.reply(f"输入错误[{count}/{MAX_COUNT}]次")
     return False
 
 
 @Client.on_message(filters.private & filters.create(code_filter))
-@auto_delete_message(delay=120)
+@auto_delete_message(delay=60)
 async def binduser_code(client: Client, message: Message):
     redis_data = redis_cli.get(f"binduser:{message.from_user.id}")
     if not redis_data:

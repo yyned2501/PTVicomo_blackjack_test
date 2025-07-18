@@ -33,7 +33,7 @@ class Mail:
         <body>
             <h2>尊敬的象岛岛民：</h2>
             <p>您的验证码是：<strong>{verification_code}</strong>，此验证码仅用于绑定tg账户时验证邮箱控制权。</p>
-            <p>请在2分钟内使用该验证码完成验证。</p>
+            <p>请在5分钟内使用该验证码完成验证。</p>
             <p>如非本人操作，请忽略此邮件。</p>
             <hr>
             <p style="color:gray;">此为系统邮件，请勿直接回复。</p>
