@@ -28,6 +28,7 @@ BINDUSER_SUCCESS = (
 )
 EXPIRE_SEC = 300
 
+
 @Client.on_message(filters.private & filters.command("bind"))
 @auto_delete_message(delete_from_message_immediately=True)
 async def secret_bind(client: Client, message: Message):
@@ -44,7 +45,7 @@ async def secret_bind(client: Client, message: Message):
             return await message.reply(BIND_FAIL)
 
 
-@Client.on_message(filters.command("bind"))
+@Client.on_message(filters.command(["bind", "binduser"]))
 @auto_delete_message()
 async def group_bind(client: Client, message: Message):
     await message.delete()
